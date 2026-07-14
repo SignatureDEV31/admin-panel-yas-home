@@ -1,3 +1,21 @@
 {
-  "overview": "Overview"
+  "overview": "Overview",
+  "categories": {
+    "main": "Main Menu",
+    "management": "Management",
+    "settings": "Settings"
+  },
+  "menu": {
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "users": "Users",
+    "allUsers": "All Users",
+    "roles": "Roles & Permissions",
+    "products": "Products",
+    "catalog": "Catalog",
+    "inventory": "Inventory",
+    "settings": "Settings",
+    "general": "General Settings",
+    "security": "Security"
+  }
 }

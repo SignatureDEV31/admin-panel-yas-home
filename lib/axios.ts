@@ -14,7 +14,7 @@ const getAuthToken = (): string | null => {
   if (typeof window === "undefined") return null;
 
   // 1. Try direct "token" in localStorage (old method)
-  let token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
   if (token) return token;
 
   // 2. Try redux-persisted auth slice (new method)
