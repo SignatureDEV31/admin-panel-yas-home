@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useSidebar } from "./sidebar-context";
+import { ModeToggle } from "../header/mode-toggle";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   BarChart3,
@@ -93,10 +95,14 @@ export const Sidebar = () => {
   const locale = useLocale();
   const isRTL = locale === "ar";
   const pathname = usePathname();
-  const { isCollapsed, toggleCollapsed, isMobileOpen, setMobileOpen } = useSidebar();
+  const { theme } = useTheme();
+  const { isCollapsed, toggleCollapsed, isMobileOpen, setMobileOpen } =
+    useSidebar();
 
   // Track open accordion sections in expanded state
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const toggleAccordion = (key: string, defaultOpen: boolean) => {
     setExpandedMenus((prev) => ({
@@ -129,15 +135,21 @@ export const Sidebar = () => {
                   ? pathname === item.href
                   : item.children?.some((child) => pathname === child.href);
 
-                const defaultOpen = !!(item.children?.some((child) => pathname === child.href));
-                const isAccordionOpen = expandedMenus[item.labelKey] !== undefined
-                  ? expandedMenus[item.labelKey]
-                  : defaultOpen;
+                const defaultOpen = !!item.children?.some(
+                  (child) => pathname === child.href,
+                );
+                const isAccordionOpen =
+                  expandedMenus[item.labelKey] !== undefined
+                    ? expandedMenus[item.labelKey]
+                    : defaultOpen;
 
                 if (isCollapsed) {
                   // Collapsed View (Icons + Hover Floating Panels)
                   return (
-                    <li key={item.labelKey} className="relative group flex justify-center">
+                    <li
+                      key={item.labelKey}
+                      className="relative group flex justify-center"
+                    >
                       {item.href ? (
                         <Link
                           href={item.href}
@@ -145,7 +157,7 @@ export const Sidebar = () => {
                             "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
                             isItemActive
                               ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
                           <item.icon className="h-5 w-5" />
@@ -156,7 +168,7 @@ export const Sidebar = () => {
                             "flex items-center justify-center h-10 w-10 rounded-lg cursor-pointer transition-all duration-200",
                             isItemActive
                               ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
                           <item.icon className="h-5 w-5" />
@@ -168,7 +180,7 @@ export const Sidebar = () => {
                         className={cn(
                           "absolute hidden group-hover:flex flex-col bg-popover border border-border shadow-lg rounded-xl p-2 w-48 z-[100] transition-all",
                           "ltr:left-full rtl:right-full top-0 ltr:ml-3 rtl:mr-3",
-                          "animate-in fade-in slide-in-from-left-2 rtl:slide-in-from-right-2 duration-150"
+                          "animate-in fade-in slide-in-from-left-2 rtl:slide-in-from-right-2 duration-150",
                         )}
                       >
                         <div className="px-2.5 py-1.5 text-xs font-semibold text-foreground/80 border-b border-border/50 mb-1">
@@ -188,7 +200,7 @@ export const Sidebar = () => {
                                     "block px-2.5 py-1.5 text-xs rounded-md transition-colors",
                                     isChildActive
                                       ? "bg-accent text-accent-foreground font-medium"
-                                      : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                                      : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
                                   )}
                                 >
                                   {t(`menu.${child.labelKey}`)}
@@ -213,12 +225,14 @@ export const Sidebar = () => {
                       <div>
                         {/* Parent Button */}
                         <button
-                          onClick={() => toggleAccordion(item.labelKey, defaultOpen)}
+                          onClick={() =>
+                            toggleAccordion(item.labelKey, defaultOpen)
+                          }
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200",
                             isItemActive
                               ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
                           <div className="flex items-center gap-3">
@@ -228,7 +242,12 @@ export const Sidebar = () => {
                           {isAccordionOpen ? (
                             <ChevronDown className="h-4 w-4 shrink-0 opacity-75" />
                           ) : (
-                            <ChevronRight className={cn("h-4 w-4 shrink-0 opacity-75", isRTL && "rotate-180")} />
+                            <ChevronRight
+                              className={cn(
+                                "h-4 w-4 shrink-0 opacity-75",
+                                isRTL && "rotate-180",
+                              )}
+                            />
                           )}
                         </button>
 
@@ -236,7 +255,9 @@ export const Sidebar = () => {
                         <div
                           className={cn(
                             "overflow-hidden transition-all duration-300 ease-in-out",
-                            isAccordionOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"
+                            isAccordionOpen
+                              ? "max-h-40 opacity-100 mt-1"
+                              : "max-h-0 opacity-0",
                           )}
                         >
                           <ul className="ltr:pl-9 rtl:pr-9 space-y-1 border-l rtl:border-l-0 rtl:border-r border-border/50 ltr:ml-5 rtl:mr-5">
@@ -251,7 +272,7 @@ export const Sidebar = () => {
                                       "block py-1.5 px-3 text-xs rounded-md transition-colors",
                                       isChildActive
                                         ? "bg-primary/10 text-primary font-semibold"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
                                     )}
                                   >
                                     {t(`menu.${child.labelKey}`)}
@@ -271,7 +292,7 @@ export const Sidebar = () => {
                           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
                           isItemActive
                             ? "bg-primary text-primary-foreground font-medium shadow-md shadow-primary/15"
-                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         )}
                       >
                         <item.icon className="h-4 w-4 shrink-0" />
@@ -296,7 +317,9 @@ export const Sidebar = () => {
         onClick={() => setMobileOpen(false)}
         className={cn(
           "fixed inset-0 bg-black/40 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300",
-          isMobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isMobileOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
         )}
       />
 
@@ -305,14 +328,14 @@ export const Sidebar = () => {
         className={cn(
           "fixed top-0 bottom-0 z-50 w-64 bg-sidebar border-r rtl:border-r-0 rtl:border-l border-sidebar-border shadow-2xl flex flex-col md:hidden transition-transform duration-300 ease-in-out",
           "ltr:left-0 rtl:right-0",
-          isMobileOpen ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
+          isMobileOpen
+            ? "translate-x-0"
+            : "ltr:-translate-x-full rtl:translate-x-full",
         )}
       >
         {/* Mobile Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border/80">
-          <div className="flex items-center gap-2">
-
-          </div>
+          <div className="flex items-center gap-2"></div>
           <button
             onClick={() => setMobileOpen(false)}
             className="p-1.5 rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -323,13 +346,22 @@ export const Sidebar = () => {
 
         {/* Content */}
         {renderNavContent()}
+
+        <div
+          className={cn(
+            "border-t border-sidebar-border/80 p-3 mt-auto",
+            isCollapsed ? "flex justify-center" : "flex justify-start",
+          )}
+        >
+          <ModeToggle />
+        </div>
       </aside>
 
       {/* ==================== DESKTOP PERSISTENT / COLLAPSED SIDEBAR ==================== */}
       <aside
         className={cn(
           "relative h-full bg-sidebar border-r rtl:border-r-0 rtl:border-l border-sidebar-border flex flex-col transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-20" : "w-64"
+          isCollapsed ? "w-20" : "w-64",
         )}
       >
         {/* Toggle Button in the vertical center of the sidebar border */}
@@ -337,27 +369,51 @@ export const Sidebar = () => {
           onClick={toggleCollapsed}
           className={cn(
             "absolute top-1/2 -translate-y-1/2 z-50 hidden md:flex h-6 w-6 items-center justify-center rounded-full border border-sidebar-border bg-sidebar shadow-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground transition-all duration-200 cursor-pointer",
-            "ltr:right-0 ltr:translate-x-1/2 rtl:left-0 rtl:-translate-x-1/2"
+            "ltr:right-0 ltr:translate-x-1/2 rtl:left-0 rtl:-translate-x-1/2",
           )}
         >
           {isCollapsed ? (
-            isRTL ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />
+            isRTL ? (
+              <ChevronLeft className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5" />
+            )
+          ) : isRTL ? (
+            <ChevronRight className="h-3.5 w-3.5" />
           ) : (
-            isRTL ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />
+            <ChevronLeft className="h-3.5 w-3.5" />
           )}
         </button>
 
         {/* Desktop Header */}
         <div className="h-16 flex items-center px-4 border-b border-sidebar-border/80">
-          <div className={cn("flex items-center gap-2 transition-all", isCollapsed && "mx-auto")}>
+          <div
+            className={cn(
+              "flex items-center gap-2 transition-all",
+              isCollapsed && "mx-auto",
+            )}
+          >
             {!isCollapsed ? (
-              <Image src="/logo/dark-yas-logo.svg" alt="Logo" width={125} height={125} />
-            ) : <Image src="/logo/yas-home-logo-y.svg" alt="Logo" width={40} height={40} />}
+              <Image
+                src={theme === "dark" ? "/logo/white-yas-logo.svg" : "/logo/dark-yas-logo.svg"}
+                alt="Logo"
+                width={125}
+                height={125}
+              />
+            ) : (
+              <Image
+                src={theme === "dark" ? "/logo/yas-home-logo-y-white.svg" : "/logo/yas-home-logo-y.svg"}
+                alt="Logo"
+                width={40}
+                height={40}
+              />
+            )}
           </div>
         </div>
 
         {/* Navigation list */}
         {renderNavContent()}
+
       </aside>
     </>
   );

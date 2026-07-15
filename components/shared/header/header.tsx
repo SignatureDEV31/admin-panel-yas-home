@@ -4,6 +4,7 @@ import React from "react";
 import { Menu, Bell } from "lucide-react";
 import { useSidebar } from "../side-bar/sidebar-context";
 import { useAuth } from "@/contexts/auth-context";
+import { ModeToggle } from "./mode-toggle";
 
 export const Header = () => {
   const { toggleMobileOpen } = useSidebar();
@@ -38,6 +39,7 @@ export const Header = () => {
           <Bell className="h-5 w-5" />
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
         </button>
+        <ModeToggle />
 
         {/* User Name & Profile Avatar */}
         <div className="flex items-center gap-3 border-s ps-3 border-border/60">
@@ -45,7 +47,6 @@ export const Header = () => {
             {user?.fullName ? user.fullName[0].toUpperCase() : "A"}
           </div>
           <div className="hidden sm:flex flex-col text-end">
-
             <span className="text-sm font-semibold text-foreground leading-none">
               {user?.fullName || "Admin User"}
             </span>
@@ -53,7 +54,6 @@ export const Header = () => {
               {user?.role || "Administrator"}
             </span>
           </div>
-
         </div>
       </div>
     </header>
