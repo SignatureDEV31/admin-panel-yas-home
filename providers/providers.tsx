@@ -2,6 +2,8 @@
 "use client";
 
 import { Provider } from "react-redux";
+
+import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/contexts/auth-context";
 import { store } from "@/store/store";
 
