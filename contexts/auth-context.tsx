@@ -1,10 +1,6 @@
 // contexts/auth-context.tsx
 "use client";
 
-import api from "@/lib/axios";
-import { clearUser, setUser } from "@/store/auth/user-slice";
-import {useDispatch } from "react-redux";
-
 import {
   createContext,
   useContext,
@@ -12,15 +8,16 @@ import {
   useState,
   useCallback,
 } from "react";
+import { useDispatch } from "react-redux";
+import { api } from "@/lib/axios";
+import { setUser, clearUser } from "@/store/auth/user-slice";
 
 type User = {
-  id?: string;
   _id?: string;
   fullName: string;
   email: string;
   image?: string | null;
   role?: string;
-  phoneNumber?: string;
 };
 
 type AuthContextType = {
@@ -56,14 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await api.get("/authentication/whoami");
       const userData = response.data.user;
 
-      // Normalize _id to id
-      const normalizedUser = {
-        ...userData,
-        id: userData.id || userData._id,
-      };
-
-      setUserState(normalizedUser);
-      dispatch(setUser(normalizedUser));
+      setUserState(userData);
+      dispatch(setUser(userData));
     } catch (error) {
       console.error("Failed to refresh user:", error);
       localStorage.removeItem("token");
