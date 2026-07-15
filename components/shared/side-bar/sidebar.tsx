@@ -395,14 +395,22 @@ export const Sidebar = () => {
           >
             {!isCollapsed ? (
               <Image
-                src={theme === "dark" ? "/logo/white-yas-logo.svg" : "/logo/dark-yas-logo.svg"}
+                src={
+                  theme === "dark"
+                    ? "/logo/white-yas-logo.svg"
+                    : "/logo/dark-yas-logo.svg"
+                }
                 alt="Logo"
                 width={125}
                 height={125}
               />
             ) : (
               <Image
-                src={theme === "dark" ? "/logo/yas-home-logo-y-white.svg" : "/logo/yas-home-logo-y.svg"}
+                src={
+                  theme === "dark"
+                    ? "/logo/yas-home-logo-y-white.svg"
+                    : "/logo/yas-home-logo-y.svg"
+                }
                 alt="Logo"
                 width={40}
                 height={40}
@@ -413,7 +421,6 @@ export const Sidebar = () => {
 
         {/* Navigation list */}
         {renderNavContent()}
-
       </aside>
     </>
   );
