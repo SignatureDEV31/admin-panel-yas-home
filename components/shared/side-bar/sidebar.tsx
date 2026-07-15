@@ -156,7 +156,7 @@ export const Sidebar = () => {
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
                             isItemActive
-                              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                              ? "bg-white text-primary-foreground shadow-md shadow-primary/20"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
@@ -167,7 +167,7 @@ export const Sidebar = () => {
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg cursor-pointer transition-all duration-200",
                             isItemActive
-                              ? "bg-primary/10 text-primary"
+                              ? "bg-white text-primary"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
@@ -291,7 +291,12 @@ export const Sidebar = () => {
                         className={cn(
                           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
                           isItemActive
-                            ? "bg-primary text-primary-foreground font-medium shadow-md shadow-primary/15"
+                            ? cn(
+                                "font-medium shadow-md shadow-primary/15",
+                                theme === "dark"
+                                  ? "bg-white text-black"
+                                  : "bg-main text-primary-foreground",
+                              )
                             : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         )}
                       >
