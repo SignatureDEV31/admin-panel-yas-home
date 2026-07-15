@@ -17,5 +17,10 @@
     "settings": "Settings",
     "general": "General Settings",
     "security": "Security"
+  },
+  "theme":{
+    "light":"light",
+    "dark":"dark"
   }
+
 }

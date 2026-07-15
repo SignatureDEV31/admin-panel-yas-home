@@ -14,7 +14,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
     : routing.defaultLocale;
 
   // Charger le fichier principal
-  const mainMessages = (await import(`../messages/${locale}.json`)).default;
 
   // Charger les namespaces
   const namespaceMessages = Object.assign(
@@ -29,7 +28,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   // Fusionner les deux
   const messages = {
-    ...mainMessages,
     ...namespaceMessages,
   };
 
