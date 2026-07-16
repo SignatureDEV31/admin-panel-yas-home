@@ -1,9 +1,8 @@
 import { ThemeProvider } from "@/providers/theme-provider";
-import { Roboto } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const roboto = Roboto({
-  weight: ["300", "400", "500", "700"],
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-sans",
@@ -16,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning> 
-      <body className={`${roboto.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

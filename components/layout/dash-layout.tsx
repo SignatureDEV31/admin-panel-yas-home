@@ -37,8 +37,8 @@ const DashboardLayoutInner: React.FC<{
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         <Header />
 
-        <div className="md:px-8 px-4 py-6 bg-muted/20 flex-1">
-          <div className="max-w-7xl mx-auto w-full">
+        <div className="md:px-8 px-4 py-6 bg-background flex-1">
+          <div className="max-w-[1600px] mx-auto w-full">
             {children}
           </div>
         </div>

@@ -41,7 +41,7 @@ export const Sidebar = () => {
             {/* Category Title */}
             <div className="h-6 flex items-center px-4 mb-2">
               {!isCollapsed ? (
-                <span className="text-sm font-semibold text-muted-foreground transition-all duration-200">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 transition-all duration-200">
                   {t(`categories.${group.categoryKey}`)}
                 </span>
               ) : (
@@ -69,10 +69,7 @@ export const Sidebar = () => {
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
                             isActive
-                              ? cn(
-                                "shadow-md shadow-primary/20",
-                                isDark ? "bg-white text-black" : "bg-main text-primary-foreground"
-                              )
+                              ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
@@ -83,10 +80,7 @@ export const Sidebar = () => {
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg cursor-pointer transition-all duration-200",
                             isActive
-                              ? cn(
-                                "shadow-md shadow-primary/20",
-                                isDark ? "bg-white text-black" : "bg-main text-primary-foreground"
-                              )
+                              ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
@@ -102,7 +96,7 @@ export const Sidebar = () => {
                           "animate-in fade-in slide-in-from-left-2 duration-150",
                         )}
                       >
-                        <div className="px-2.5 py-1.5 text-xs font-semibold text-foreground/80 border-b border-border/50 mb-1">
+                        <div className="px-2.5 py-1.5 text-sm font-semibold text-foreground/80 border-b border-border/50 mb-1">
                           {t(`menu.${item.labelKey}`)}
                         </div>
 
@@ -116,7 +110,7 @@ export const Sidebar = () => {
                                   href={child.href}
                                   onClick={() => setMobileOpen(false)}
                                   className={cn(
-                                    "block px-2.5 py-1.5 text-xs rounded-md transition-colors",
+                                    "block px-2.5 py-1.5 text-sm rounded-md transition-colors",
                                     isChildActive
                                       ? "bg-accent text-accent-foreground font-medium"
                                       : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
@@ -128,7 +122,7 @@ export const Sidebar = () => {
                             })}
                           </div>
                         ) : (
-                          <div className="px-2.5 py-1 text-xs text-muted-foreground">
+                          <div className="px-2.5 py-1 text-sm text-muted-foreground">
                             {t("overview")}
                           </div>
                         )}
@@ -146,14 +140,14 @@ export const Sidebar = () => {
                         <button
                           onClick={() => toggleAccordion(item)}
                           className={cn(
-                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200",
+                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-base font-semibold transition-all duration-200",
                             isActive
-                              ? "bg-primary/10 text-primary font-medium"
+                              ? "bg-primary/10 text-primary font-bold"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
                           <div className="flex items-center gap-3">
-                            <item.icon className="h-4 w-4 shrink-0" />
+                            <item.icon className="h-4.5 w-4.5 shrink-0" />
                             <span>{t(`menu.${item.labelKey}`)}</span>
                           </div>
                           {isOpen ? (
@@ -181,7 +175,7 @@ export const Sidebar = () => {
                                     href={child.href}
                                     onClick={() => setMobileOpen(false)}
                                     className={cn(
-                                      "block py-1.5 px-3 text-xs rounded-md transition-colors",
+                                      "block py-1.5 px-3 text-sm font-medium rounded-md transition-colors",
                                       isChildActive
                                         ? "bg-primary/10 text-primary font-semibold"
                                         : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
@@ -201,14 +195,9 @@ export const Sidebar = () => {
                         href={item.href!}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
+                          "flex items-center gap-3 px-3 py-2 rounded-lg text-base font-semibold transition-all duration-200",
                           isActive
-                            ? cn(
-                              "font-medium shadow-md shadow-primary/15",
-                              isDark
-                                ? "bg-white text-black"
-                                : "bg-main text-primary-foreground",
-                            )
+                            ? "bg-primary/10 text-primary font-bold"
                             : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         )}
                       >
