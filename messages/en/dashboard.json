@@ -3,6 +3,7 @@
   "categories": {
     "main": "Main Menu",
     "management": "Management",
+    "propertyManagement": "Property Management",
     "settings": "Settings"
   },
   "menu": {
@@ -14,6 +15,10 @@
     "products": "Products",
     "catalog": "Catalog",
     "inventory": "Inventory",
+    "propertyMgmt": "Property Management",
+    "properties": "Properties",
+    "projects": "Projects",
+    "amenities": "Amenities",
     "settings": "Settings",
     "general": "General Settings",
     "security": "Security"

@@ -3,6 +3,7 @@
   "categories": {
     "main": "Menu Principal",
     "management": "Gestion",
+    "propertyManagement": "Gestion Immobilière",
     "settings": "Paramètres"
   },
   "menu": {
@@ -14,6 +15,10 @@
     "products": "Produits",
     "catalog": "Catalogue",
     "inventory": "Inventaire",
+    "propertyMgmt": "Gestion Immobilière",
+    "properties": "Biens",
+    "projects": "Projets",
+    "amenities": "Équipements",
     "settings": "Paramètres",
     "general": "Général",
     "security": "Sécurité"

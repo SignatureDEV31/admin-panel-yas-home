@@ -22,7 +22,8 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
-import { getAdminStats, AdminStats } from "@/services/admin.service";
+import { getAdminStats } from "@/services/admin.service";
+import { AdminStats } from "@/services/type";
 
 // Recharts imports
 import {
