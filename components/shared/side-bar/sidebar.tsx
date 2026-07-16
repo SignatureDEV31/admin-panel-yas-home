@@ -25,9 +25,16 @@ export const Sidebar = () => {
   const { theme } = useTheme();
   const { isCollapsed, toggleCollapsed, isMobileOpen, setMobileOpen } =
     useSidebar();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { isItemActive, isAccordionOpen, toggleAccordion } =
     useSidebarNavigation(pathname);
+
+  const isDark = mounted && theme === "dark";
 
 
   const renderNavContent = () => {
@@ -201,7 +208,7 @@ export const Sidebar = () => {
                           isActive
                             ? cn(
                                 "font-medium shadow-md shadow-primary/15",
-                                theme === "dark"
+                                isDark
                                   ? "bg-white text-black"
                                   : "bg-main text-primary-foreground",
                               )
@@ -309,7 +316,7 @@ export const Sidebar = () => {
             {!isCollapsed ? (
               <Image
                 src={
-                  theme === "dark"
+                  isDark
                     ? "/logo/white-yas-logo.svg"
                     : "/logo/dark-yas-logo.svg"
                 }
@@ -320,7 +327,7 @@ export const Sidebar = () => {
             ) : (
               <Image
                 src={
-                  theme === "dark"
+                  isDark
                     ? "/logo/yas-home-logo-y-white.svg"
                     : "/logo/yas-home-logo-y.svg"
                 }
