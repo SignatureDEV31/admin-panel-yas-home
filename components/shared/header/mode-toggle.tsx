@@ -7,14 +7,12 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
+import { useMounted } from "@/hooks/use-mounted";
+
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
   const t = useTranslations("theme");
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
