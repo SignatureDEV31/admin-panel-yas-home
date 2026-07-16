@@ -1,94 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useSidebar } from "./sidebar-context";
+import { useSidebarNavigation } from "./hooks/use-sidebar-navigation";
 import { ModeToggle } from "../header/mode-toggle";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import {
-  LayoutDashboard,
-  BarChart3,
-  Users,
-  ShoppingBag,
-  Settings as SettingsIcon,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
   X,
-  type LucideIcon,
 } from "lucide-react";
-
-interface SidebarSubItem {
-  labelKey: string;
-  href: string;
-}
-
-interface SidebarItem {
-  labelKey: string;
-  icon: LucideIcon;
-  href?: string;
-  children?: SidebarSubItem[];
-}
-
-interface SidebarCategory {
-  categoryKey: string;
-  items: SidebarItem[];
-}
-
-const menuGroups: SidebarCategory[] = [
-  {
-    categoryKey: "main",
-    items: [
-      {
-        labelKey: "overview",
-        icon: LayoutDashboard,
-        href: "/overview",
-      },
-      {
-        labelKey: "analytics",
-        icon: BarChart3,
-        href: "/analytics",
-      },
-    ],
-  },
-  {
-    categoryKey: "management",
-    items: [
-      {
-        labelKey: "users",
-        icon: Users,
-        children: [
-          { labelKey: "allUsers", href: "/users" },
-          { labelKey: "roles", href: "/users/roles" },
-        ],
-      },
-      {
-        labelKey: "products",
-        icon: ShoppingBag,
-        children: [
-          { labelKey: "catalog", href: "/products/catalog" },
-          { labelKey: "inventory", href: "/products/inventory" },
-        ],
-      },
-    ],
-  },
-  {
-    categoryKey: "settings",
-    items: [
-      {
-        labelKey: "settings",
-        icon: SettingsIcon,
-        children: [
-          { labelKey: "general", href: "/settings/general" },
-          { labelKey: "security", href: "/settings/security" },
-        ],
-      },
-    ],
-  },
-];
+import { menuGroups } from "./data/data";
 
 export const Sidebar = () => {
   const t = useTranslations();
@@ -99,17 +26,9 @@ export const Sidebar = () => {
   const { isCollapsed, toggleCollapsed, isMobileOpen, setMobileOpen } =
     useSidebar();
 
-  // Track open accordion sections in expanded state
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
-    {},
-  );
+  const { isItemActive, isAccordionOpen, toggleAccordion } =
+    useSidebarNavigation(pathname);
 
-  const toggleAccordion = (key: string, defaultOpen: boolean) => {
-    setExpandedMenus((prev) => ({
-      ...prev,
-      [key]: prev[key] !== undefined ? !prev[key] : !defaultOpen,
-    }));
-  };
 
   const renderNavContent = () => {
     return (
@@ -131,17 +50,8 @@ export const Sidebar = () => {
             <ul className="space-y-1 px-3">
               {group.items.map((item) => {
                 const hasChildren = !!item.children;
-                const isItemActive = item.href
-                  ? pathname === item.href
-                  : item.children?.some((child) => pathname === child.href);
-
-                const defaultOpen = !!item.children?.some(
-                  (child) => pathname === child.href,
-                );
-                const isAccordionOpen =
-                  expandedMenus[item.labelKey] !== undefined
-                    ? expandedMenus[item.labelKey]
-                    : defaultOpen;
+                const isActive = isItemActive(item);
+                const isOpen = isAccordionOpen(item);
 
                 if (isCollapsed) {
                   // Collapsed View (Icons + Hover Floating Panels)
@@ -155,7 +65,7 @@ export const Sidebar = () => {
                           href={item.href}
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
-                            isItemActive
+                            isActive
                               ? "bg-white text-primary-foreground shadow-md shadow-primary/20"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
@@ -166,7 +76,7 @@ export const Sidebar = () => {
                         <div
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg cursor-pointer transition-all duration-200",
-                            isItemActive
+                            isActive
                               ? "bg-white text-primary"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
@@ -225,12 +135,10 @@ export const Sidebar = () => {
                       <div>
                         {/* Parent Button */}
                         <button
-                          onClick={() =>
-                            toggleAccordion(item.labelKey, defaultOpen)
-                          }
+                          onClick={() => toggleAccordion(item)}
                           className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200",
-                            isItemActive
+                            isActive
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
@@ -239,7 +147,7 @@ export const Sidebar = () => {
                             <item.icon className="h-4 w-4 shrink-0" />
                             <span>{t(`menu.${item.labelKey}`)}</span>
                           </div>
-                          {isAccordionOpen ? (
+                          {isOpen ? (
                             <ChevronDown className="h-4 w-4 shrink-0 opacity-75" />
                           ) : (
                             <ChevronRight
@@ -255,7 +163,7 @@ export const Sidebar = () => {
                         <div
                           className={cn(
                             "overflow-hidden transition-all duration-300 ease-in-out",
-                            isAccordionOpen
+                            isOpen
                               ? "max-h-40 opacity-100 mt-1"
                               : "max-h-0 opacity-0",
                           )}
@@ -290,7 +198,7 @@ export const Sidebar = () => {
                         onClick={() => setMobileOpen(false)}
                         className={cn(
                           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
-                          isItemActive
+                          isActive
                             ? cn(
                                 "font-medium shadow-md shadow-primary/15",
                                 theme === "dark"

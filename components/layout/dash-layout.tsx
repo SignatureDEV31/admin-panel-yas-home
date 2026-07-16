@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useParams } from "next/navigation";
 import { Header } from "../shared/header/header";
 import { Sidebar } from "../shared/side-bar/sidebar";
 import { SidebarProvider, useSidebar } from "../shared/side-bar/sidebar-context";
@@ -19,12 +18,11 @@ export const DashboardLayoutWrapper: React.FC<{
 const DashboardLayoutInner: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { locale } = useParams();
-  const isRTL = locale === "ar";
+
   const { isCollapsed } = useSidebar();
 
   return (
-    <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background">
 
       {/* Sidebar (fixed width but participates logically in layout) */}
       <div className={cn(
