@@ -1,5 +1,13 @@
 import { ThemeProvider } from "@/providers/theme-provider";
+import { Roboto } from "next/font/google";
 import "./globals.css";
+
+const roboto = Roboto({
+  weight: ["300", "400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+});
 
 export default function RootLayout({
   children,
@@ -8,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning> 
-      <body>
+      <body className={`${roboto.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

@@ -41,7 +41,7 @@ export const Sidebar = () => {
             {/* Category Title */}
             <div className="h-6 flex items-center px-4 mb-2">
               {!isCollapsed ? (
-                <span className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase transition-all duration-200">
+                <span className="text-sm font-semibold text-muted-foreground transition-all duration-200">
                   {t(`categories.${group.categoryKey}`)}
                 </span>
               ) : (
@@ -69,7 +69,10 @@ export const Sidebar = () => {
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
                             isActive
-                              ? "bg-white text-primary-foreground shadow-md shadow-primary/20"
+                              ? cn(
+                                "shadow-md shadow-primary/20",
+                                isDark ? "bg-white text-black" : "bg-main text-primary-foreground"
+                              )
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
@@ -80,7 +83,10 @@ export const Sidebar = () => {
                           className={cn(
                             "flex items-center justify-center h-10 w-10 rounded-lg cursor-pointer transition-all duration-200",
                             isActive
-                              ? "bg-white text-primary"
+                              ? cn(
+                                "shadow-md shadow-primary/20",
+                                isDark ? "bg-white text-black" : "bg-main text-primary-foreground"
+                              )
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
