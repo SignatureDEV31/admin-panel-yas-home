@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, Check } from "lucide-react";
 import { CreateAmenityPayload } from "@/types/amenity";
 
 // Validation Schema builder
@@ -38,6 +38,7 @@ interface AmenityFormProps {
   isSubmitting: boolean;
   existingKeys: string[];
   existingCategories: string[];
+  onCancel?: () => void;
 }
 
 export const AmenityForm: React.FC<AmenityFormProps> = ({
@@ -45,6 +46,7 @@ export const AmenityForm: React.FC<AmenityFormProps> = ({
   isSubmitting,
   existingKeys,
   existingCategories,
+  onCancel,
 }) => {
   const schema = useMemoSchema(existingKeys);
   const {
@@ -64,7 +66,18 @@ export const AmenityForm: React.FC<AmenityFormProps> = ({
   });
 
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
   const titleValue = watch("title");
+  const categoryValue = watch("category");
+
+  const filteredCategories = React.useMemo(() => {
+    const q = (categoryValue || "").toLowerCase().trim();
+    if (!q) return existingCategories;
+    return existingCategories.filter((cat) =>
+      cat.toLowerCase().includes(q)
+    );
+  }, [categoryValue, existingCategories]);
 
   // Autogenerate key from title unless manually edited
   useEffect(() => {
@@ -94,6 +107,7 @@ export const AmenityForm: React.FC<AmenityFormProps> = ({
 
   const handleCategorySelect = (category: string) => {
     setValue("category", category, { shouldValidate: true });
+    setIsDropdownOpen(false);
   };
 
   const onFormSubmit = async (data: FormValues) => {
@@ -107,86 +121,125 @@ export const AmenityForm: React.FC<AmenityFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
-      {/* Title */}
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-foreground">Title</label>
-        <input
-          type="text"
-          placeholder="e.g. Swimming Pool"
-          {...register("title")}
-          className={`flex h-9 w-full rounded-md border bg-card px-3 py-1 text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring ${
-            errors.title ? "border-destructive/80 focus:ring-destructive" : "border-input"
-          }`}
-        />
-        {errors.title && (
-          <p className="text-xs text-destructive font-medium">{errors.title.message}</p>
-        )}
-      </div>
-
-      {/* Key */}
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-foreground">System Key</label>
-        <input
-          type="text"
-          placeholder="e.g. swimming_pool"
-          {...register("key")}
-          onChange={handleKeyChange}
-          className={`flex h-9 w-full rounded-md border bg-card px-3 py-1 text-sm text-foreground shadow-xs font-mono transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring ${
-            errors.key ? "border-destructive/80 focus:ring-destructive" : "border-input"
-          }`}
-        />
-        <p className="text-xxs text-muted-foreground font-medium">
-          Unique lowercase key, generated automatically. Editable unless start/end with underscores.
-        </p>
-        {errors.key && (
-          <p className="text-xs text-destructive font-medium">{errors.key.message}</p>
-        )}
-      </div>
-
-      {/* Category */}
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-foreground">Category</label>
-        <input
-          type="text"
-          placeholder="e.g. Sports & Wellness"
-          {...register("category")}
-          className={`flex h-9 w-full rounded-md border bg-card px-3 py-1 text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring ${
-            errors.category ? "border-destructive/80 focus:ring-destructive" : "border-input"
-          }`}
-        />
-        {errors.category && (
-          <p className="text-xs text-destructive font-medium">{errors.category.message}</p>
-        )}
-
-        {/* Existing Categories Badges / Autocomplete */}
-        {existingCategories.length > 0 && (
-          <div className="pt-2">
-            <span className="text-xxs font-bold text-muted-foreground uppercase tracking-wider block mb-2">
-              Or pick an existing category:
-            </span>
-            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-              {existingCategories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleCategorySelect(cat)}
-                  className="cursor-pointer inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xxs font-semibold bg-muted/30 text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-all"
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+    <form onSubmit={handleSubmit(onFormSubmit)}>
+      <div className="grid gap-4 py-4">
+        {/* Title */}
+        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+          <label htmlFor="title" className="text-right text-sm font-medium text-foreground">
+            Title
+          </label>
+          <div>
+            <input
+              id="title"
+              type="text"
+              placeholder="e.g. Swimming Pool"
+              {...register("title")}
+              className={`flex h-10 w-full rounded-md border bg-card px-3.5 py-2 text-sm font-semibold text-foreground shadow-xs transition-all placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 ${errors.title
+                  ? "border-destructive/80 focus:ring-destructive focus:border-destructive hover:border-destructive"
+                  : "border-input focus:ring-yashomePink focus:border-yashomePink"
+                }`}
+            />
+            {errors.title && (
+              <p className="text-xs text-destructive font-medium mt-1">{errors.title.message}</p>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Key */}
+        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+          <label htmlFor="key" className="text-right text-sm font-medium text-foreground">
+            System Key
+          </label>
+          <div>
+            <input
+              id="key"
+              type="text"
+              placeholder="e.g. swimming_pool"
+              {...register("key")}
+              onChange={handleKeyChange}
+              className={`flex h-10 w-full rounded-md border bg-card px-3.5 py-2 text-sm font-semibold font-mono text-foreground shadow-xs transition-all placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 ${errors.key
+                  ? "border-destructive/80 focus:ring-destructive focus:border-destructive hover:border-destructive"
+                  : "border-input focus:ring-yashomePink focus:border-yashomePink"
+                }`}
+            />
+            {errors.key && (
+              <p className="text-xs text-destructive font-medium mt-1">{errors.key.message}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Category */}
+        <div className="grid grid-cols-[100px_1fr] items-start gap-4">
+          <label htmlFor="category" className="text-right text-sm font-medium text-foreground pt-2">
+            Category
+          </label>
+          <div className="space-y-3">
+            <div className="relative">
+              <input
+                id="category"
+                type="text"
+                placeholder="e.g. Sports & Wellness"
+                {...register("category")}
+                onFocus={() => setIsDropdownOpen(true)}
+                onBlur={() => {
+                  // Delay closing dropdown slightly so click handlers on option buttons can trigger first
+                  setTimeout(() => setIsDropdownOpen(false), 200);
+                }}
+                className={`flex h-10 w-full rounded-md border bg-card pl-3.5 pr-10 py-2 text-sm font-semibold text-foreground shadow-xs transition-all placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 ${errors.category
+                    ? "border-destructive/80 focus:ring-destructive focus:border-destructive hover:border-destructive"
+                    : "border-input focus:ring-yashomePink focus:border-yashomePink"
+                  }`}
+              />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 pointer-events-none" />
+
+              {/* Floating Searchable Dropdown List - absolute to input wrapper */}
+              {isDropdownOpen && existingCategories.length > 0 && (
+                <div className="absolute z-50 w-full top-full left-0 mt-1 max-h-52 overflow-y-auto rounded-md border border-border bg-card p-1 shadow-md text-foreground transition-all animate-in fade-in slide-in-from-top-2 duration-150">
+                  {filteredCategories.length > 0 ? (
+                    filteredCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => handleCategorySelect(cat)}
+                        className="w-full text-left cursor-pointer rounded-md px-3 py-2.5 text-sm font-bold hover:bg-muted/40 hover:text-foreground text-foreground/80 transition-colors flex items-center justify-between"
+                      >
+                        <span>{cat}</span>
+                        {categoryValue === cat && (
+                          <Check className="h-4 w-4 text-yashomePink shrink-0" />
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2.5 text-sm text-muted-foreground font-medium">
+                      No categories found. Type to use "{categoryValue}"
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {errors.category && (
+              <p className="text-xs text-destructive font-medium mt-1">{errors.category.message}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Action Button */}
-      <div className="pt-4 border-t border-border/40 flex items-center justify-end gap-3">
+      <div className="border-t border-border/40 pt-4 mt-2 flex justify-end gap-2">
+        {onCancel && (
+          <Button
+            type="button"
+            disabled={isSubmitting}
+            onClick={onCancel}
+            className="cursor-pointer bg-yasHomeBlue text-white hover:bg-yasHomeBlue/90 font-bold h-10 px-4 rounded-md transition-all text-sm w-full sm:w-auto"
+          >
+            Cancel
+          </Button>
+        )}
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="cursor-pointer bg-main text-white hover:bg-main/90 font-bold h-10 px-4 rounded-md transition-all text-sm flex items-center justify-center gap-1.5 w-full sm:w-auto"
+          className="cursor-pointer bg-yashomePink text-white hover:bg-yashomePink/90 font-bold h-10 px-4 rounded-md transition-all text-sm flex items-center justify-center gap-1.5 w-full sm:w-auto"
         >
           {isSubmitting ? (
             <>

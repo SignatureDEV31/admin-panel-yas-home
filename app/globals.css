@@ -6,6 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-yasHomeBlue: var(--yasHomeBlue);
   --color-yashomePink: var(--yashomePink);
   --color-main: var(--main);
   --color-background: var(--background);
@@ -52,6 +53,7 @@
 }
 
 :root {
+  --yasHomeBlue: #151533;
   --yashomePink: #FF014F;
   --main: #151533;
   --background: rgb(249, 250, 250);

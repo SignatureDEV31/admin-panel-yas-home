@@ -41,11 +41,11 @@ export const AmenitiesTable: React.FC<AmenitiesTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase">
-            <TableHead className="h-10 px-6 font-bold w-[45%]">Amenity</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[20%]">Amenity</TableHead>
             <TableHead className="h-10 px-6 font-bold w-[20%]">System Key</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[15%]">Category</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[10%] hidden md:table-cell">Created</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[5%] text-right">Actions</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[20%]">Category</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[20%] hidden md:table-cell">Created</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[20%]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border/40">
@@ -99,7 +99,7 @@ export const AmenitiesTable: React.FC<AmenitiesTableProps> = ({
               </TableCell>
 
               {/* Actions */}
-              <TableCell className="px-6 py-3.5 text-right align-middle">
+              <TableCell className="px-6 py-3.5 pl-10 align-middle">
                 <div className="inline-block text-left">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="cursor-pointer h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 transition-all select-none">

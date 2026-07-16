@@ -15,7 +15,7 @@ import { AmenitiesTable } from "@/components/admin/amenities/amenities-table";
 import { AmenitiesEmptyState } from "@/components/admin/amenities/amenities-empty-state";
 import { AmenitiesLoading } from "@/components/admin/amenities/amenities-loading";
 import { AmenitiesError } from "@/components/admin/amenities/amenities-error";
-import { AmenityDrawer } from "@/components/admin/amenities/amenity-drawer";
+import { AmenityDialog } from "@/components/admin/amenities/amenity-dialog";
 import { AmenityForm } from "@/components/admin/amenities/amenity-form";
 
 export default function AmenitiesPage() {
@@ -206,8 +206,8 @@ export default function AmenitiesPage() {
         )
       )}
 
-      {/* Slide-over Form Drawer */}
-      <AmenityDrawer
+      {/* Add Amenity Dialog Popup */}
+      <AmenityDialog
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
       >
@@ -216,8 +216,9 @@ export default function AmenitiesPage() {
           isSubmitting={isSubmitting}
           existingKeys={existingKeys}
           existingCategories={categories}
+          onCancel={() => setIsDrawerOpen(false)}
         />
-      </AmenityDrawer>
+      </AmenityDialog>
     </div>
   );
 }
