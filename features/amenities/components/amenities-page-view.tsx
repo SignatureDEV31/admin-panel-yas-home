@@ -17,6 +17,7 @@ import { AmenitiesLoading } from "./amenities-loading";
 import { AmenitiesError } from "./amenities-error";
 import { AmenityDialog } from "./amenity-dialog";
 import { AmenityForm } from "./amenity-form";
+import { PaginationControl } from "@/components/shared/pagination/pagination-control";
 
 import {
   computeAmenityCategories,
@@ -35,6 +36,10 @@ export function AmenitiesPageView() {
   const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +69,11 @@ export function AmenitiesPageView() {
     fetchAmenities();
   }, []);
 
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedCategory, sortBy]);
+
   // Compute Categories from returned data
   const categories = useMemo(() => {
     return computeAmenityCategories(data || []);
@@ -74,15 +84,24 @@ export function AmenitiesPageView() {
     return filterAndSortAmenities(data || [], searchQuery, selectedCategory, sortBy);
   }, [data, searchQuery, selectedCategory, sortBy]);
 
+  // Paginated View Slice
+  const totalFilteredCount = filteredAndSortedData.length;
+  const totalPages = Math.ceil(totalFilteredCount / pageSize) || 1;
+
+  const paginatedAmenities = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredAndSortedData.slice(start, start + pageSize);
+  }, [filteredAndSortedData, page, pageSize]);
+
   // Handle Submission Creation Flow
   const handleCreateAmenity = async (payload: CreateAmenityPayload) => {
     setIsSubmitting(true);
     const toastId = toast.loading("Creating amenity...");
     try {
       const newAmenity = await createAmenity(payload);
-      
+
       setData((prev) => (prev ? [newAmenity, ...prev] : [newAmenity]));
-      
+
       toast.success("Amenity created successfully!", { id: toastId });
       setIsDrawerOpen(false);
     } catch (err: any) {
@@ -157,10 +176,24 @@ export function AmenitiesPageView() {
         />
       ) : (
         isMounted && (
-          <AmenitiesTable
-            amenities={filteredAndSortedData}
-            locale={locale}
-          />
+          <div className="space-y-4">
+            <AmenitiesTable
+              amenities={paginatedAmenities}
+              locale={locale}
+            />
+
+            <PaginationControl
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalFilteredCount}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(newSize) => {
+                setPageSize(newSize);
+                setPage(1);
+              }}
+            />
+          </div>
         )
       )}
 

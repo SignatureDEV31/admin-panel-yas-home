@@ -4,7 +4,7 @@ import {
   Users,
   ShoppingBag,
   Settings as SettingsIcon,
-  Sparkles,
+  Building2,
 } from "lucide-react";
 import { SidebarCategory } from "./types";
 
@@ -50,7 +50,7 @@ export const menuGroups: SidebarCategory[] = [
     items: [
       {
         labelKey: "propertyMgmt",
-        icon: Sparkles,
+        icon: Building2,
         children: [
           { labelKey: "properties", href: "/properties" },
           { labelKey: "projects", href: "/projects" },

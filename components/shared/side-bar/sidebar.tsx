@@ -140,20 +140,20 @@ export const Sidebar = () => {
                         <button
                           onClick={() => toggleAccordion(item)}
                           className={cn(
-                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-base font-semibold transition-all duration-200",
+                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer",
                             isActive
                               ? "bg-primary/10 text-primary font-bold"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden pr-1">
                             <item.icon className="h-4.5 w-4.5 shrink-0" />
-                            <span>{t(`menu.${item.labelKey}`)}</span>
+                            <span className="truncate whitespace-nowrap">{t(`menu.${item.labelKey}`)}</span>
                           </div>
                           {isOpen ? (
-                            <ChevronDown className="h-4 w-4 shrink-0 opacity-75" />
+                            <ChevronDown className="h-4 w-4 shrink-0 opacity-75 ml-1" />
                           ) : (
-                            <ChevronRight className="h-4 w-4 shrink-0 opacity-75" />
+                            <ChevronRight className="h-4 w-4 shrink-0 opacity-75 ml-1" />
                           )}
                         </button>
 
@@ -175,7 +175,7 @@ export const Sidebar = () => {
                                     href={child.href}
                                     onClick={() => setMobileOpen(false)}
                                     className={cn(
-                                      "block py-1.5 px-3 text-sm font-medium rounded-md transition-colors",
+                                      "block py-1.5 px-3 text-sm font-medium rounded-md transition-colors truncate whitespace-nowrap",
                                       isChildActive
                                         ? "bg-primary/10 text-primary font-semibold"
                                         : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
@@ -195,14 +195,14 @@ export const Sidebar = () => {
                         href={item.href!}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2 rounded-lg text-base font-semibold transition-all duration-200",
+                          "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer",
                           isActive
                             ? "bg-primary/10 text-primary font-bold"
                             : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         )}
                       >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        <span>{t(`menu.${item.labelKey}`)}</span>
+                        <item.icon className="h-4.5 w-4.5 shrink-0" />
+                        <span className="truncate whitespace-nowrap">{t(`menu.${item.labelKey}`)}</span>
                       </Link>
                     )}
                   </li>

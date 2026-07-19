@@ -41,6 +41,8 @@ You are an expert Next.js developer. Please follow this exact folder structure a
 7. Internationalization (`messages/`):
    - Store translation key-value JSONs in `messages/` organized by locale (`en.json`, `ar.json`, `fr.json`).
 
+Reuse existing components if reusable
+
 Please strictly follow this directory organization when creating or modifying any file.
 
 <!-- END:nextjs-agent-rules -->

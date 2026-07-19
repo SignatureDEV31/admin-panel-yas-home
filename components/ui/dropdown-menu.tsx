@@ -24,10 +24,40 @@ function useDropdownMenu() {
 
 function DropdownMenu({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   return (
     <DropdownMenuContext.Provider value={{ open, setOpen }}>
-      <div className="relative inline-flex" data-slot="dropdown-menu">
+      <div ref={containerRef} className="relative inline-flex" data-slot="dropdown-menu">
         {children}
       </div>
     </DropdownMenuContext.Provider>
@@ -82,7 +112,7 @@ function DropdownMenuContent({
 }: {
   className?: string;
   children: React.ReactNode;
-  align?: "start" | "end" | "center";
+  align?: "start" | "end" | "center" | "left" | "right";
 }) {
   const { open } = useDropdownMenu();
 
@@ -93,10 +123,12 @@ function DropdownMenuContent({
       role="menu"
       data-slot="dropdown-menu-content"
       className={cn(
-        "absolute z-50 mt-2 min-w-40 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md",
-        align === "end" && "left-full ml-2 top-0",
-        align === "start" && "right-full mr-2 top-0",
-        align === "center" && "left-1/2 -translate-x-1/2 top-0",
+        "absolute z-50 min-w-36 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-80 zoom-in-95",
+        align === "end" && "right-0 top-full mt-1.5",
+        align === "start" && "left-0 top-full mt-1.5",
+        align === "center" && "left-1/2 -translate-x-1/2 top-full mt-1.5",
+        align === "left" && "right-full mr-2 top-0",
+        align === "right" && "left-full ml-2 top-0",
         className,
       )}
     >
@@ -122,7 +154,7 @@ function DropdownMenuItem({
       role="menuitem"
       data-slot="dropdown-menu-item"
       className={cn(
-        "flex w-full items-center rounded-md px-2 py-1 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground",
+        "flex w-full items-center rounded-md px-2.5 py-1.5 text-xs font-semibold outline-none transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer",
         className,
       )}
       onClick={(event) => {

@@ -13,9 +13,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Sparkles, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { Amenity } from "@/features/amenities/types/amenity";
 import { formatAmenityDate } from "@/features/amenities/utils/amenities-utils";
+import { AmenityIcon } from "./amenity-icon";
 
 interface AmenitiesTableProps {
   amenities: Amenity[];
@@ -49,7 +50,12 @@ export const AmenitiesTable: React.FC<AmenitiesTableProps> = ({
               <TableCell className="px-6 py-3.5 font-medium align-middle">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-yashomePink/5 text-yashomePink flex items-center justify-center border border-yashomePink/10 shrink-0 shadow-xxs">
-                    <Sparkles className="h-4.5 w-4.5" />
+                    <AmenityIcon
+                      amenityKey={amenity.key}
+                      title={amenity.title}
+                      category={amenity.category}
+                      className="h-4.5 w-4.5"
+                    />
                   </div>
                   <div>
                     <span className="text-sm font-semibold text-foreground block leading-tight">
@@ -96,7 +102,7 @@ export const AmenitiesTable: React.FC<AmenitiesTableProps> = ({
                     <DropdownMenuTrigger className="cursor-pointer h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 transition-all select-none">
                       <MoreVertical className="h-4 w-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-36">
+                    <DropdownMenuContent className="w-36" align="end">
                       <DropdownMenuItem className="opacity-50 cursor-not-allowed text-xs font-semibold flex items-center gap-1.5">
                         <Edit2 className="h-3.5 w-3.5" />
                         <span>Edit (soon)</span>
