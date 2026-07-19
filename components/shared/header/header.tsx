@@ -11,7 +11,7 @@ export const Header = () => {
   const { user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 h-16 w-full border-b border-border/60 bg-card/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8">
+    <header className="sticky top-0 z-30 h-16 w-full border-b border-border/60 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8">
       {/* Mobile Toggle & Left Side */}
       <div className="flex items-center gap-4">
         <button
