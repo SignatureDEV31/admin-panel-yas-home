@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const propertyDetailSchema = z.object({
-  // Core Attributes
+  // Basic Specifications & Attributes
   propertyName: z.string().min(1, "Property Name is required"),
   propertyType: z.enum(["VENTE", "LOCATION"]),
   category: z.string().optional(),
@@ -9,30 +9,15 @@ export const propertyDetailSchema = z.object({
   surface: z.string().or(z.number()).optional(),
   propertyEtage: z.string().or(z.number()).optional(),
   beds: z.string().or(z.number()).optional(),
-  apartmentsNumber: z.string().or(z.number()).optional(),
-  capaciteMax: z.string().or(z.number()).optional(),
 
-  // Financial & Pricing Terms
-  pricingDeal: z.string().optional(),
-  pricingMethode: z.string().optional(),
-  pricingType: z.string().optional(),
-  rentalPeriod: z.string().optional(),
-  securityDeposit: z.string().or(z.number()).optional(),
-  discount: z.string().or(z.number()).optional(),
-  descriptionPaiement: z.string().optional(),
-
-  // Location & Geo Coordinates
+  // Location & Coordinates
   country: z.string().optional(),
   state: z.string().optional(),
   city: z.string().optional(),
-  adress: z.string().optional(),
   latitude: z.string().or(z.number()).optional(),
   longitude: z.string().or(z.number()).optional(),
 
-  // Status & Media
-  availableStatus: z.boolean().optional(),
-  availableDate: z.string().optional(),
-  videoLink: z.string().optional(),
+  // Description
   description: z.string().optional(),
 
   // Amenities Flags

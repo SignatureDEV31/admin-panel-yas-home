@@ -11,6 +11,7 @@ export interface Project {
   description?: string;
   price?: number | string;
   surface?: number | string;
+  status?: ProjectStatusType | string;
   projectStatus?: ProjectStatusType | string;
   category?: string | { name?: string; title?: string };
   state?: string;

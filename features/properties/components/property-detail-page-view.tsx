@@ -35,10 +35,7 @@ import {
   RefreshCw,
   Sparkles,
   MapPin,
-  DollarSign,
-  Video,
-  CheckCircle2,
-  XCircle,
+  FileText,
   ArrowLeft,
 } from "lucide-react";
 
@@ -73,13 +70,9 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
     defaultValues: {
       propertyType: "VENTE",
       country: "Algérie",
-      pricingDeal: "fixed",
-      pricingMethode: "total",
-      availableStatus: true,
     },
   });
 
-  const availableStatus = watch("availableStatus");
   const propertyName = watch("propertyName");
   const category = watch("category");
   const price = watch("price");
@@ -109,7 +102,7 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
 
       const pType = (propObj.propertyType || data.propertyType || "VENTE").toUpperCase();
 
-      // Reset form with fetched values
+      // Reset form with exact database values
       reset({
         propertyName: propObj.propertyName || data.title || (data as any).name || (data as any).nom || "",
         propertyType: pType.includes("LOC") || pType.includes("RENT") ? "LOCATION" : "VENTE",
@@ -118,24 +111,11 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
         surface: propObj.surface ?? data.surface ?? "",
         propertyEtage: propObj.propertyEtage ?? (data as any).propertyEtage ?? "",
         beds: propObj.beds ?? data.beds ?? "",
-        apartmentsNumber: propObj.apartmentsNumber ?? (data as any).apartmentsNumber ?? "",
-        capaciteMax: propObj.capaciteMax ?? (data as any).capaciteMax ?? "",
-        pricingDeal: propObj.pricingDeal || (data as any).pricingDeal || "fixed",
-        pricingMethode: propObj.pricingMethode || (data as any).pricingMethode || "total",
-        pricingType: propObj.pricingType || (data as any).pricingType || "",
-        rentalPeriod: propObj.rentalPeriod || (data as any).rentalPeriod || "",
-        securityDeposit: propObj.securityDeposit ? String(propObj.securityDeposit) : "",
-        discount: propObj.discount ? String(propObj.discount) : "",
-        descriptionPaiement: propObj.descriptionPaiement || (data as any).descriptionPaiement || "",
         country: propObj.country || (data as any).country || "Algérie",
         state: propObj.state || data.state || propObj.wilaya || data.wilaya || "",
         city: propObj.city || data.city || (data as any).commune || "",
-        adress: propObj.adress || propObj.address || data.address || "",
         latitude: propObj.latitude ? String(propObj.latitude) : "",
         longitude: propObj.longitude ? String(propObj.longitude) : "",
-        availableStatus: propObj.availableStatus !== undefined ? Boolean(propObj.availableStatus) : true,
-        availableDate: propObj.availableDate || (data as any).availableDate || "",
-        videoLink: propObj.videoLink || (data as any).videoLink || "",
         description: propObj.description || data.description || "",
         ...amenitiesFlags,
       });
@@ -158,7 +138,7 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
 
   const onSubmit = async (formData: PropertyDetailFormData) => {
     setSaving(true);
-    const toastId = toast.loading("Saving property changes via React Hook Form...");
+    const toastId = toast.loading("Saving property changes...");
     try {
       const updatedPropertyObj = {
         ...((property as any)?.property || {}),
@@ -170,24 +150,11 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
         surface: formData.surface !== "" && formData.surface !== undefined ? String(formData.surface) : null,
         propertyEtage: formData.propertyEtage !== "" && formData.propertyEtage !== undefined ? Number(formData.propertyEtage) : null,
         beds: formData.beds !== "" && formData.beds !== undefined ? Number(formData.beds) : null,
-        apartmentsNumber: formData.apartmentsNumber !== "" && formData.apartmentsNumber !== undefined ? Number(formData.apartmentsNumber) : null,
-        capaciteMax: formData.capaciteMax !== "" && formData.capaciteMax !== undefined ? Number(formData.capaciteMax) : 0,
-        pricingDeal: formData.pricingDeal,
-        pricingMethode: formData.pricingMethode,
-        pricingType: formData.pricingType?.trim() || null,
-        rentalPeriod: formData.rentalPeriod?.trim() || null,
-        securityDeposit: formData.securityDeposit !== "" && formData.securityDeposit !== undefined ? Number(formData.securityDeposit) : null,
-        discount: formData.discount !== "" && formData.discount !== undefined ? Number(formData.discount) : null,
-        descriptionPaiement: formData.descriptionPaiement?.trim(),
         country: formData.country?.trim(),
         state: formData.state?.trim(),
         city: formData.city?.trim(),
-        adress: formData.adress?.trim(),
         latitude: formData.latitude !== "" && formData.latitude !== undefined ? String(formData.latitude) : null,
         longitude: formData.longitude !== "" && formData.longitude !== undefined ? String(formData.longitude) : null,
-        availableStatus: formData.availableStatus,
-        availableDate: formData.availableDate?.trim() || null,
-        videoLink: formData.videoLink?.trim() || null,
         description: formData.description?.trim(),
       };
 
@@ -333,7 +300,7 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
 
   return (
     <div className="space-y-6 pb-16">
-      {/* Refactored Header Component */}
+      {/* Header Component */}
       <PropertyDetailHeader
         id={id}
         locale={locale}
@@ -397,41 +364,15 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormInput label="Price (DZD)" type="number" {...register("price")} error={errors.price?.message} placeholder="e.g. 155" />
                 <FormInput label="Surface (m²)" type="number" {...register("surface")} error={errors.surface?.message} placeholder="e.g. 120" />
                 <FormInput label="Floor (Étage)" type="number" {...register("propertyEtage")} error={errors.propertyEtage?.message} placeholder="e.g. 11" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FormInput label="Bedrooms / Beds" type="number" {...register("beds")} error={errors.beds?.message} placeholder="e.g. 2" />
-                <FormInput label="Apartments Count" type="number" {...register("apartmentsNumber")} error={errors.apartmentsNumber?.message} placeholder="e.g. 1" />
-                <FormInput label="Max Capacity" type="number" {...register("capaciteMax")} error={errors.capaciteMax?.message} placeholder="e.g. 4" />
               </div>
             </div>
 
-            {/* Section 2: Pricing & Financial Terms */}
-            <div className="bg-card border border-border/80 rounded-xl p-6 shadow-xs space-y-5">
-              <h2 className="text-base font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-yashomePink" />
-                <span>Financial & Pricing Terms</span>
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <FormInput label="Pricing Deal" {...register("pricingDeal")} error={errors.pricingDeal?.message} placeholder="e.g. fixed" />
-                <FormInput label="Pricing Method" {...register("pricingMethode")} error={errors.pricingMethode?.message} placeholder="e.g. total" />
-                <FormInput label="Rental Period" {...register("rentalPeriod")} error={errors.rentalPeriod?.message} placeholder="e.g. 1 year" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormInput label="Security Deposit" type="number" {...register("securityDeposit")} error={errors.securityDeposit?.message} placeholder="Deposit amount..." />
-                <FormInput label="Discount" type="number" {...register("discount")} error={errors.discount?.message} placeholder="Discount amount..." />
-              </div>
-
-              <FormTextarea label="Payment Terms Description" rows={2} {...register("descriptionPaiement")} error={errors.descriptionPaiement?.message} placeholder="Payment conditions..." />
-            </div>
-
-            {/* Section 3: Location & Coordinates */}
+            {/* Section 2: Location & Coordinates */}
             <div className="bg-card border border-border/80 rounded-xl p-6 shadow-xs space-y-5">
               <h2 className="text-base font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-yashomePink" />
@@ -444,46 +385,29 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
                 <FormInput label="City / Commune" {...register("city")} error={errors.city?.message} placeholder="e.g. Bir El Djir" />
               </div>
 
-              <FormInput label="Full Address" {...register("adress")} error={errors.adress?.message} placeholder="Full address..." />
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Latitude" {...register("latitude")} error={errors.latitude?.message} placeholder="35.705670..." />
-                <FormInput label="Longitude" {...register("longitude")} error={errors.longitude?.message} placeholder="-0.555521..." />
+                <FormInput label="Longitude" {...register("longitude")} error={errors.longitude?.message} placeholder="--0.555521..." />
               </div>
             </div>
 
-            {/* Section 4: Media Links & Availability */}
+            {/* Section 3: Property Description */}
             <div className="bg-card border border-border/80 rounded-xl p-6 shadow-xs space-y-5">
               <h2 className="text-base font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
-                <Video className="h-5 w-5 text-yashomePink" />
-                <span>Media & Availability</span>
+                <FileText className="h-5 w-5 text-yashomePink" />
+                <span>Property Description</span>
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3.5 rounded-lg border border-border bg-muted/20">
-                  <div>
-                    <span className="text-sm font-bold text-foreground block">Listing Available</span>
-                    <span className="text-xs text-muted-foreground font-medium">Toggle availability status</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setValue("availableStatus", !availableStatus, { shouldValidate: true, shouldDirty: true })}
-                    className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-                      availableStatus ? "text-emerald-500 bg-emerald-500/10" : "text-destructive bg-destructive/10"
-                    }`}
-                  >
-                    {availableStatus ? <CheckCircle2 className="h-6 w-6" /> : <XCircle className="h-6 w-6" />}
-                  </button>
-                </div>
-
-                <FormInput label="Available Date" {...register("availableDate")} error={errors.availableDate?.message} placeholder="YYYY-MM-DD" />
-              </div>
-
-              <FormInput label="Video Tour URL" type="url" {...register("videoLink")} error={errors.videoLink?.message} placeholder="https://..." />
-              <FormTextarea label="Full Description" rows={4} {...register("description")} error={errors.description?.message} placeholder="Property description..." />
+              <FormTextarea
+                label="Full Description"
+                rows={5}
+                {...register("description")}
+                error={errors.description?.message}
+                placeholder="Full description of the property..."
+              />
             </div>
 
-            {/* Section 5: Amenities & Features Toggles */}
+            {/* Section 4: Amenities & Features Toggles */}
             <div className="bg-card border border-border/80 rounded-xl p-6 shadow-xs space-y-6">
               <h2 className="text-base font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-yashomePink" />

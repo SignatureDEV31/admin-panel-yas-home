@@ -55,7 +55,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
           {projects.map((project) => {
             const projectId = String(project.id || project._id || "");
             const detailUrl = `/${locale}/projects/${projectId}`;
-            const statusBadge = getProjectStatusBadge(project.projectStatus);
+            const statusBadge = getProjectStatusBadge(project.status || project.projectStatus);
             const locationLabel = getPropertyLocation(project);
 
             const mainPhoto =

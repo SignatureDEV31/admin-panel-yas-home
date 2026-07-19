@@ -9,13 +9,13 @@ export interface ProjectStats {
 
 export const getProjectStatusBadge = (status?: string) => {
   const s = (status || "").toUpperCase().trim();
-  if (s === "ANNOUNCEMENT" || s === "ANNOUNCE") {
+  if (s === "ANNOUNCEMENT" || s.includes("ANNOUNC")) {
     return { label: "Announcement", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" };
   }
-  if (s === "UNDER_CONSTRUCTION" || s === "CONSTRUCTION") {
+  if (s === "UNDER_CONSTRUCTION" || s.includes("CONSTRUCT")) {
     return { label: "Under Construction", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" };
   }
-  if (s === "FINISHED" || s === "COMPLETED") {
+  if (s === "FINISHED" || s.includes("FINISH")) {
     return { label: "Finished", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" };
   }
   return { label: status || "Under Development", color: "bg-main/10 text-main dark:text-foreground border-main/20" };
@@ -43,7 +43,7 @@ export const filterProjects = (
 
   if (selectedStatus !== "all") {
     result = result.filter(
-      (p) => (p.projectStatus || "").toUpperCase() === selectedStatus.toUpperCase()
+      (p) => ((p.status || p.projectStatus || "") as string).toUpperCase() === selectedStatus.toUpperCase()
     );
   }
 
@@ -58,10 +58,16 @@ export const calculateProjectStats = (projects: ProjectItem[]): ProjectStats => 
   let finished = 0;
 
   safeProjects.forEach((p) => {
-    const s = (p.projectStatus || "").toUpperCase();
-    if (s === "ANNOUNCEMENT") announcement++;
-    else if (s === "UNDER_CONSTRUCTION") underConstruction++;
-    else if (s === "FINISHED") finished++;
+    const s = ((p.status || p.projectStatus || "") as string).toUpperCase().trim();
+    if (s === "ANNOUNCEMENT" || s.includes("ANNOUNC") || s.includes("LANCEMENT")) {
+      announcement++;
+    } else if (s === "FINISHED" || s.includes("FINISH") || s.includes("LIVR") || s.includes("COMPLET")) {
+      finished++;
+    } else if (s === "UNDER_CONSTRUCTION" || s.includes("CONSTRUCT") || s.includes("EN_COURS")) {
+      underConstruction++;
+    } else {
+      underConstruction++;
+    }
   });
 
   return {
