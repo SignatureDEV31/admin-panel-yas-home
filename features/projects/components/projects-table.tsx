@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Table,
   TableHeader,
@@ -7,8 +9,14 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Briefcase, MapPin, Maximize2 } from "lucide-react";
-import { Property as ProjectItem } from "@/services/properties/properties.service";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Briefcase, MapPin, Maximize2, MoreVertical, Edit2, Trash2, ExternalLink } from "lucide-react";
+import { Project } from "@/services/projects/projects.service";
 import {
   formatPrice,
   formatSurface,
@@ -17,45 +25,92 @@ import {
 import { getProjectStatusBadge } from "@/features/projects/utils/projects-utils";
 
 interface ProjectsTableProps {
-  projects: ProjectItem[];
+  projects: Project[];
+  onEdit?: (project: Project) => void;
+  onDelete?: (id: string) => void;
 }
 
-export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
+export const ProjectsTable: React.FC<ProjectsTableProps> = ({
+  projects,
+  onEdit,
+  onDelete,
+}) => {
+  const params = useParams();
+  const locale = (params?.locale as string) || "fr";
+
   return (
     <div className="bg-card border border-border/80 rounded-xl overflow-hidden shadow-xs">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase">
-            <TableHead className="h-10 px-6 font-bold w-[30%]">Project Name</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[20%]">Status</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[20%]">Starting Price</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[15%] hidden md:table-cell">Surface</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[15%] hidden lg:table-cell">Location</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[35%] font-bold">Project ID / Name</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[16%] font-bold">Status</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[18%] font-bold">Starting Price</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[13%] hidden md:table-cell font-bold">Surface</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[10%] hidden lg:table-cell font-bold">Location</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[8%] text-right font-bold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border/40">
           {projects.map((project) => {
+            const projectId = String(project.id || project._id || "");
+            const detailUrl = `/${locale}/projects/${projectId}`;
             const statusBadge = getProjectStatusBadge(project.projectStatus);
             const locationLabel = getPropertyLocation(project);
 
+            const mainPhoto =
+              typeof project.mainImage === "string"
+                ? project.mainImage
+                : project.mainImage?.url ||
+                  (project.images && project.images.length > 0
+                    ? typeof project.images[0] === "string"
+                      ? project.images[0]
+                      : project.images[0].url
+                    : null);
+
             return (
               <TableRow
-                key={project.id || project._id}
+                key={projectId}
                 className="hover:bg-muted/5 transition-colors border-border/40 group/row"
               >
-                {/* Title */}
+                {/* Photo + Project ID & Title */}
                 <TableCell className="px-6 py-3.5 font-medium align-middle">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-yashomePink/5 text-yashomePink flex items-center justify-center border border-yashomePink/10 shrink-0 shadow-xxs">
-                      <Briefcase className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-semibold text-foreground block leading-tight">
-                        {project.title && project.title.trim() !== ""
-                          ? project.title.trim()
-                          : "Promotional Complex"}
-                      </span>
-                      <span className="text-xs text-muted-foreground/80 font-medium block mt-0.5">
+                    <Link href={detailUrl} className="shrink-0 hover:opacity-90 transition-opacity">
+                      {mainPhoto ? (
+                        <img
+                          src={mainPhoto}
+                          alt={`Project ${projectId}`}
+                          className="h-10 w-10 rounded-lg object-cover border border-border/80 shrink-0 shadow-xxs bg-muted"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-yashomePink/5 text-yashomePink flex items-center justify-center border border-yashomePink/10 shrink-0 shadow-xxs">
+                          <Briefcase className="h-5 w-5" />
+                        </div>
+                      )}
+                    </Link>
+
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href={detailUrl}
+                          className="text-xs font-mono font-bold px-1.5 py-0.5 rounded-md bg-muted border border-border/80 text-foreground hover:bg-muted/80 transition-colors select-all shrink-0"
+                        >
+                          #{projectId}
+                        </Link>
+                        {(project.title || project.propertyName) && (
+                          <Link
+                            href={detailUrl}
+                            className="text-xs text-foreground font-semibold hover:text-yashomePink transition-colors truncate max-w-[180px]"
+                          >
+                            {(project.title || project.propertyName || "").trim()}
+                          </Link>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground/80 font-medium block">
                         {project.typeVendeur || "Real Estate Promoter"}
                       </span>
                     </div>
@@ -73,7 +128,9 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
 
                 {/* Price */}
                 <TableCell className="px-6 py-3.5 align-middle font-bold text-foreground text-sm">
-                  {formatPrice(project.price)}
+                  <Link href={detailUrl} className="hover:text-yashomePink transition-colors">
+                    {formatPrice(project.price)}
+                  </Link>
                 </TableCell>
 
                 {/* Surface */}
@@ -90,6 +147,41 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                     <span className="truncate max-w-[180px]">{locationLabel}</span>
                   </div>
+                </TableCell>
+
+                {/* Actions Dropdown */}
+                <TableCell className="px-6 py-3.5 text-right align-middle">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="cursor-pointer h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 transition-all select-none ml-auto">
+                      <MoreVertical className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-40" align="end">
+                      <DropdownMenuItem className="cursor-pointer text-xs font-semibold flex items-center gap-1.5">
+                        <Link href={detailUrl} className="flex items-center gap-1.5 w-full">
+                          <ExternalLink className="h-3.5 w-3.5 text-yashomePink" />
+                          <span>View Details</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      {onEdit && (
+                        <DropdownMenuItem
+                          onClick={() => onEdit(project)}
+                          className="cursor-pointer text-xs font-semibold flex items-center gap-1.5"
+                        >
+                          <Edit2 className="h-3.5 w-3.5 text-blue-500" />
+                          <span>Quick Edit</span>
+                        </DropdownMenuItem>
+                      )}
+                      {onDelete && (
+                        <DropdownMenuItem
+                          onClick={() => onDelete(projectId)}
+                          className="cursor-pointer text-xs font-semibold flex items-center gap-1.5 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );

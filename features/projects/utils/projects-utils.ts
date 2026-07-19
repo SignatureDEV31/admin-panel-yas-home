@@ -1,4 +1,4 @@
-import { Property as ProjectItem } from "@/services/properties/properties.service";
+import { Project as ProjectItem } from "@/services/projects/projects.service";
 
 export interface ProjectStats {
   total: number;
@@ -31,11 +31,13 @@ export const filterProjects = (
   let result = [...projects];
 
   if (searchQuery.trim() !== "") {
-    const q = searchQuery.toLowerCase().trim();
+    const rawQ = searchQuery.toLowerCase().trim();
+    const q = rawQ.replace(/^#/, "");
     result = result.filter((p) => {
-      const title = (p.title || "").toLowerCase();
-      const loc = (p.state || p.wilaya || p.city || "").toLowerCase();
-      return title.includes(q) || loc.includes(q);
+      const idStr = String(p.id || p._id || "").toLowerCase();
+      const title = (p.title || p.propertyName || "").toLowerCase();
+      const loc = (p.state || p.wilaya || p.city || p.address || p.adress || "").toLowerCase();
+      return idStr.includes(q) || title.includes(q) || loc.includes(q);
     });
   }
 

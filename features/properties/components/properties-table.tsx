@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Table,
   TableHeader,
@@ -13,7 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Building2, MapPin, Maximize2, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { Building2, MapPin, Maximize2, MoreVertical, Edit2, Trash2, ExternalLink } from "lucide-react";
 import { Property } from "@/features/properties/types/property";
 import {
   formatPrice,
@@ -33,44 +35,89 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const params = useParams();
+  const locale = (params?.locale as string) || "fr";
+
   return (
     <div className="bg-card border border-border/80 rounded-xl overflow-hidden shadow-xs">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase">
-            <TableHead className="h-10 px-6 font-bold w-[25%]">Property</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[15%]">Type</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[20%]">Price</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[15%] hidden md:table-cell">Surface</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[15%] hidden lg:table-cell">Location</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[10%] text-right">Actions</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[35%]">Property ID / Title</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[12%]">Type</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[18%]">Price</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[13%] hidden md:table-cell">Surface</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[14%] hidden lg:table-cell">Location</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[8%] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border/40">
           {properties.map((property) => {
             const propertyId = property.id || property._id || "";
+            const detailUrl = `/${locale}/properties/${propertyId}`;
             const isSale = (property.propertyType || "").toUpperCase() === "VENTE";
             const categoryLabel = getPropertyCategory(property);
             const locationLabel = getPropertyLocation(property);
+
+            // Extract main image or fallback
+            const mainPhoto =
+              typeof property.mainImage === "string"
+                ? property.mainImage
+                : property.mainImage?.url ||
+                  (property.images && property.images.length > 0
+                    ? typeof property.images[0] === "string"
+                      ? property.images[0]
+                      : property.images[0].url
+                    : null);
 
             return (
               <TableRow
                 key={propertyId}
                 className="hover:bg-muted/5 transition-colors border-border/40 group/row"
               >
-                {/* Title + Category */}
+                {/* Main Photo + ID + Title + Category */}
                 <TableCell className="px-6 py-3.5 font-medium align-middle">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-yashomePink/5 text-yashomePink flex items-center justify-center border border-yashomePink/10 shrink-0 shadow-xxs">
-                      <Building2 className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-semibold text-foreground block leading-tight">
-                        {property.title && property.title.trim() !== ""
-                          ? property.title.trim()
-                          : "Untitled Listing"}
-                      </span>
-                      <span className="text-xs text-muted-foreground/80 font-medium block mt-0.5">
+                    {/* Clickable Photo Thumbnail */}
+                    <Link
+                      href={detailUrl}
+                      className="shrink-0 hover:opacity-90 transition-opacity"
+                    >
+                      {mainPhoto ? (
+                        <img
+                          src={mainPhoto}
+                          alt={`Property ${propertyId}`}
+                          className="h-10 w-10 rounded-lg object-cover border border-border/80 shrink-0 shadow-xxs bg-muted"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-yashomePink/5 text-yashomePink flex items-center justify-center border border-yashomePink/10 shrink-0 shadow-xxs">
+                          <Building2 className="h-5 w-5" />
+                        </div>
+                      )}
+                    </Link>
+
+                    {/* Clickable ID & Title */}
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href={detailUrl}
+                          className="text-xs font-mono font-bold px-1.5 py-0.5 rounded-md bg-muted border border-border/80 text-foreground hover:bg-muted/80 transition-colors select-all shrink-0"
+                        >
+                          #{propertyId}
+                        </Link>
+                        {property.title && property.title.trim() !== "" && (
+                          <Link
+                            href={detailUrl}
+                            className="text-xs text-foreground font-semibold hover:text-yashomePink transition-colors truncate max-w-[180px]"
+                          >
+                            {property.title.trim()}
+                          </Link>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground/80 font-medium block">
                         {categoryLabel}
                       </span>
                     </div>
@@ -92,7 +139,9 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
 
                 {/* Price */}
                 <TableCell className="px-6 py-3.5 align-middle font-bold text-foreground text-sm">
-                  {formatPrice(property.price)}
+                  <Link href={detailUrl} className="hover:text-yashomePink transition-colors">
+                    {formatPrice(property.price)}
+                  </Link>
                 </TableCell>
 
                 {/* Surface */}
@@ -117,14 +166,20 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
                     <DropdownMenuTrigger className="cursor-pointer h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 transition-all select-none ml-auto">
                       <MoreVertical className="h-4 w-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-36" align="end">
+                    <DropdownMenuContent className="w-40" align="end">
+                      <DropdownMenuItem className="cursor-pointer text-xs font-semibold flex items-center gap-1.5">
+                        <Link href={detailUrl} className="flex items-center gap-1.5 w-full">
+                          <ExternalLink className="h-3.5 w-3.5 text-yashomePink" />
+                          <span>View Details</span>
+                        </Link>
+                      </DropdownMenuItem>
                       {onEdit && (
                         <DropdownMenuItem
                           onClick={() => onEdit(property)}
                           className="cursor-pointer text-xs font-semibold flex items-center gap-1.5"
                         >
                           <Edit2 className="h-3.5 w-3.5 text-blue-500" />
-                          <span>Edit</span>
+                          <span>Quick Edit</span>
                         </DropdownMenuItem>
                       )}
                       {onDelete && (

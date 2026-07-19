@@ -6,7 +6,7 @@ interface ProjectsToolbarProps {
   setSearchQuery: (val: string) => void;
   selectedStatus: string;
   setSelectedStatus: (val: string) => void;
-  resultsCount: number;
+  resultsCount?: number;
 }
 
 export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
@@ -14,7 +14,7 @@ export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
   setSearchQuery,
   selectedStatus,
   setSelectedStatus,
-  resultsCount,
+  resultsCount = 0,
 }) => {
   const isFiltered = searchQuery !== "" || selectedStatus !== "all";
 

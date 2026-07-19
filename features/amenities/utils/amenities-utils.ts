@@ -54,9 +54,11 @@ export const filterAndSortAmenities = (
 
   // 1. Search Query Filter (Title, Key, Category)
   if (searchQuery.trim() !== "") {
-    const q = searchQuery.toLowerCase().trim();
+    const rawQ = searchQuery.toLowerCase().trim();
+    const q = rawQ.replace(/^#/, "");
     result = result.filter(
       (item) =>
+        String((item as any).id || (item as any)._id || "").toLowerCase().includes(q) ||
         (item.title || "").toLowerCase().includes(q) ||
         (item.key || "").toLowerCase().includes(q) ||
         (item.category || "").toLowerCase().includes(q)

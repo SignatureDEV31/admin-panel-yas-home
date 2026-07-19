@@ -7,10 +7,16 @@ export interface PropertyUser {
   phoneNumber?: string;
 }
 
+export interface PropertyImageItem {
+  id: string;
+  url: string;
+}
+
 export interface Property {
   id: string;
   _id?: string;
   title: string;
+  propertyName?: string;
   description?: string;
   price?: number | string;
   surface?: number | string;
@@ -21,8 +27,26 @@ export interface Property {
   wilaya?: string;
   city?: string;
   address?: string;
-  images?: string[];
-  mainImage?: string;
+  adress?: string;
+  country?: string;
+  latitude?: string | number;
+  longitude?: string | number;
+  beds?: number;
+  propertyEtage?: number;
+  apartmentsNumber?: number;
+  capaciteMax?: number;
+  pricingDeal?: string;
+  pricingMethode?: string;
+  pricingType?: string;
+  securityDeposit?: number | string;
+  discount?: number | string;
+  rentalPeriod?: string;
+  descriptionPaiement?: string;
+  availableStatus?: boolean;
+  availableDate?: string;
+  videoLink?: string;
+  images?: (string | PropertyImageItem)[];
+  mainImage?: string | PropertyImageItem;
   typeVendeur?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -184,12 +208,38 @@ export async function getProperties(params?: PropertyQueryParams): Promise<Prope
  */
 export async function getPropertyById(id: string): Promise<Property> {
   try {
-    const response = await api.get<Property>(`/properties/${id}`);
-    return response.data;
+    const response = await api.get<any>(`/properties/${id}`);
+    const resData = response.data;
+
+    let item = resData;
+    if (resData && resData.property) {
+      item = {
+        ...resData,
+        ...resData.property,
+        id: resData.property.id || resData.id || id,
+        rawParent: resData,
+      };
+    } else if (resData && resData.data) {
+      item = resData.data;
+    }
+
+    if (item) {
+      return item;
+    }
   } catch (error) {
-    console.error(`Error fetching property ${id}:`, error);
-    throw error;
+    console.warn(`GET /properties/${id} failed, attempting search fallback for ID ${id}:`, error);
   }
+
+  // Fallback: search unified search for the property by ID
+  try {
+    const all = await getProperties({ limit: 50 });
+    const match = all.find((p) => String(p.id) === String(id) || String(p._id) === String(id));
+    if (match) return match;
+  } catch (err) {
+    console.error(`Fallback search for property ${id} failed:`, err);
+  }
+
+  throw new Error(`Property with ID #${id} could not be retrieved from the server.`);
 }
 
 /**

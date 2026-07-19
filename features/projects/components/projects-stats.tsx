@@ -1,18 +1,19 @@
 import React, { useMemo } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Briefcase, Megaphone, HardHat, CheckCircle2 } from "lucide-react";
-import { Property as ProjectItem } from "@/services/properties/properties.service";
-import { calculateProjectStats } from "@/features/projects/utils/projects-utils";
+import { Project } from "@/services/projects/projects.service";
+import { calculateProjectStats, ProjectStats } from "@/features/projects/utils/projects-utils";
 
 interface ProjectsStatsProps {
-  projects: ProjectItem[];
+  stats?: ProjectStats;
+  projects?: Project[];
 }
 
-export const ProjectsStats: React.FC<ProjectsStatsProps> = ({ projects }) => {
-  const { total, announcement, underConstruction, finished } = useMemo(
-    () => calculateProjectStats(projects),
-    [projects]
-  );
+export const ProjectsStats: React.FC<ProjectsStatsProps> = ({ stats: propStats, projects }) => {
+  const { total, announcement, underConstruction, finished } = useMemo(() => {
+    if (propStats) return propStats;
+    return calculateProjectStats(projects || []);
+  }, [propStats, projects]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

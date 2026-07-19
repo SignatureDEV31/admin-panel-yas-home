@@ -41,17 +41,17 @@ export const formatPropertyDate = (isoString?: string, locale = "fr"): string =>
 /**
  * Extract category string from Property
  */
-export const getPropertyCategory = (property: Property): string => {
+export const getPropertyCategory = (property: { category?: any }): string => {
   if (!property.category) return "General";
   if (typeof property.category === "string") return property.category;
   return property.category.title || property.category.name || "General";
 };
 
 /**
- * Extract state/wilaya/city string from Property
+ * Extract state/wilaya/city string from Property or Project
  */
-export const getPropertyLocation = (property: Property): string => {
-  const parts = [property.state || property.wilaya, property.city, property.address]
+export const getPropertyLocation = (property: { state?: string; wilaya?: string; city?: string; address?: string; adress?: string }): string => {
+  const parts = [property.state || property.wilaya, property.city, property.address || property.adress]
     .filter(Boolean)
     .map((s) => String(s).trim());
   return parts.length > 0 ? parts.join(", ") : "N/A";
@@ -71,12 +71,14 @@ export const filterProperties = (
   let result = [...properties];
 
   if (searchQuery.trim() !== "") {
-    const q = searchQuery.toLowerCase().trim();
+    const rawQ = searchQuery.toLowerCase().trim();
+    const q = rawQ.replace(/^#/, "");
     result = result.filter((p) => {
-      const title = (p.title || "").toLowerCase();
+      const idStr = String(p.id || p._id || "").toLowerCase();
+      const title = (p.title || p.propertyName || "").toLowerCase();
       const cat = getPropertyCategory(p).toLowerCase();
       const loc = getPropertyLocation(p).toLowerCase();
-      return title.includes(q) || cat.includes(q) || loc.includes(q);
+      return idStr.includes(q) || title.includes(q) || cat.includes(q) || loc.includes(q);
     });
   }
 
