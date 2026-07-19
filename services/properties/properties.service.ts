@@ -308,17 +308,26 @@ export async function deletePropertyImage(imageId: string): Promise<any> {
   }
 }
 
-/**
- * Updates main image via PATCH /properties/{propertyId}/update-main-image
- */
 export async function updatePropertyMainImage(propertyId: string, imageId: string): Promise<any> {
+  const numericId = !isNaN(Number(imageId)) ? Number(imageId) : imageId;
+
   try {
     const response = await api.patch(`/properties/${propertyId}/update-main-image`, {
-      imageId,
+      id: numericId,
+      imageId: numericId,
+      mainImage: imageId,
     });
     return response.data;
   } catch (error) {
-    console.error(`Error updating main image for property ${propertyId}:`, error);
-    throw error;
+    console.warn(`PATCH /properties/${propertyId}/update-main-image failed, trying fallback:`, error);
+    try {
+      const resp2 = await api.patch(`/properties/${propertyId}`, {
+        mainImage: numericId,
+      });
+      return resp2.data;
+    } catch (err2) {
+      console.error(`Error updating main image for property ${propertyId}:`, error);
+      throw error;
+    }
   }
 }

@@ -40,10 +40,22 @@ export const PropertyPhotoGallery: React.FC<PropertyPhotoGalleryProps> = ({
       return [];
     }
 
-    return images.map((img) => ({
-      ...img,
-      isMain: mainPhotoUrl === img.url,
-    }));
+    const cleanMain = (mainPhotoUrl || "").trim().replace(/^https?:\/\//, "");
+
+    return images.map((img) => {
+      const cleanImgUrl = (img.url || "").trim().replace(/^https?:\/\//, "");
+      const isMain =
+        Boolean(mainPhotoUrl) &&
+        (mainPhotoUrl === img.url ||
+          mainPhotoUrl === img.id ||
+          (cleanMain !== "" && cleanImgUrl !== "" && (cleanMain === cleanImgUrl || cleanMain.includes(cleanImgUrl) || cleanImgUrl.includes(cleanMain))) ||
+          (img.id && String(mainPhotoUrl).includes(String(img.id))));
+
+      return {
+        ...img,
+        isMain: Boolean(isMain),
+      };
+    });
   }, [images, mainPhotoUrl]);
 
   const handleRotate = (imageId: string, deltaAngle = 90) => {

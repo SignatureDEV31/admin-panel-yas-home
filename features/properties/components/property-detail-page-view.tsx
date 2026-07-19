@@ -251,11 +251,17 @@ export function PropertyDetailPageView({ id: propId, locale: propLocale }: Prope
   const handleSetMainImage = async (imageId: string) => {
     const toastId = toast.loading("Setting main photo...");
     try {
-      await updatePropertyMainImage(id, imageId);
+      const targetItem = rawImages.find(
+        (img: any) => String(img.id) === String(imageId) || img.url === imageId
+      );
+      const effectiveId = targetItem?.id || imageId;
+
+      await updatePropertyMainImage(id, effectiveId);
       toast.success("Main photo updated!", { id: toastId });
       await fetchPropertyData();
     } catch (err: any) {
-      toast.error("Failed to set main photo.", { id: toastId });
+      console.error("Failed to set main photo:", err);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to set main photo.", { id: toastId });
     }
   };
 

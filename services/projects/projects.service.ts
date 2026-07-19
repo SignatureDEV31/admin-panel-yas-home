@@ -1,4 +1,4 @@
-import api from "@/lib/axios";
+import { api } from "@/lib/axios";
 import { PropertyImageItem } from "@/services/properties/properties.service";
 
 export type ProjectStatusType = "ANNOUNCEMENT" | "UNDER_CONSTRUCTION" | "FINISHED";
