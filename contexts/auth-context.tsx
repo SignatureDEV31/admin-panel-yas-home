@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useDispatch } from "react-redux";
 import { api } from "@/lib/axios";
-import { setUser, clearUser } from "@/store/user-slice";
+import { setUser, clearUser } from "@/store/auth/user-slice";
 
 type User = {
   _id?: string;

@@ -1,8 +1,8 @@
 import { api } from "@/lib/axios";
-import { toast } from "sonner";
-import { SignInFormData } from "../schemas/sign-in.schema";
+import toast from "react-hot-toast";
+import { SignInFormData } from "@/features/auth/schemas/sign-in.schema";
 import { AppDispatch } from "@/store/store";
-import { setUser } from "@/store/user-slice";
+import { setUser } from "@/store/auth/user-slice";
 
 export const handleSignIn = async (
   data: SignInFormData,
