@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 type DropdownMenuContextValue = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
 const DropdownMenuContext =
@@ -56,7 +57,7 @@ function DropdownMenu({ children }: { children: React.ReactNode }) {
   }, [open]);
 
   return (
-    <DropdownMenuContext.Provider value={{ open, setOpen }}>
+    <DropdownMenuContext.Provider value={{ open, setOpen, containerRef }}>
       <div ref={containerRef} className="relative inline-flex" data-slot="dropdown-menu">
         {children}
       </div>
@@ -109,14 +110,59 @@ function DropdownMenuContent({
   className,
   children,
   align = "end",
+  side = "auto",
 }: {
   className?: string;
   children: React.ReactNode;
   align?: "start" | "end" | "center" | "left" | "right";
+  side?: "top" | "bottom" | "auto";
 }) {
-  const { open } = useDropdownMenu();
+  const { open, containerRef } = useDropdownMenu();
+  const [computedSide, setComputedSide] = React.useState<"top" | "bottom">("bottom");
+
+  React.useEffect(() => {
+    if (!open) return;
+    if (side === "top" || side === "bottom") {
+      setComputedSide(side);
+      return;
+    }
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelowWindow = window.innerHeight - rect.bottom;
+
+      let spaceBelowContainer = spaceBelowWindow;
+      let parent: HTMLElement | null = containerRef.current.parentElement;
+      while (parent && parent !== document.body) {
+        const style = window.getComputedStyle(parent);
+        if (
+          style.overflow === "hidden" ||
+          style.overflow === "auto" ||
+          style.overflowY === "auto" ||
+          style.overflowY === "hidden" ||
+          parent.classList.contains("bg-card") ||
+          parent.tagName === "TABLE"
+        ) {
+          const parentRect = parent.getBoundingClientRect();
+          const dist = parentRect.bottom - rect.bottom;
+          if (dist < spaceBelowContainer) {
+            spaceBelowContainer = dist;
+          }
+        }
+        parent = parent.parentElement;
+      }
+
+      const minNeededSpace = 170;
+      if ((spaceBelowWindow < minNeededSpace || spaceBelowContainer < minNeededSpace) && rect.top > minNeededSpace) {
+        setComputedSide("top");
+      } else {
+        setComputedSide("bottom");
+      }
+    }
+  }, [open, side, containerRef]);
 
   if (!open) return null;
+
+  const isTop = computedSide === "top";
 
   return (
     <div
@@ -124,11 +170,25 @@ function DropdownMenuContent({
       data-slot="dropdown-menu-content"
       className={cn(
         "absolute z-50 min-w-36 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-80 zoom-in-95",
-        align === "end" && "right-0 top-full mt-1.5",
-        align === "start" && "left-0 top-full mt-1.5",
-        align === "center" && "left-1/2 -translate-x-1/2 top-full mt-1.5",
-        align === "left" && "right-full mr-2 top-0",
-        align === "right" && "left-full ml-2 top-0",
+        isTop
+          ? align === "end"
+            ? "right-0 bottom-full mb-1.5"
+            : align === "start"
+            ? "left-0 bottom-full mb-1.5"
+            : align === "center"
+            ? "left-1/2 -translate-x-1/2 bottom-full mb-1.5"
+            : align === "left"
+            ? "right-full mr-2 bottom-0"
+            : "left-full ml-2 bottom-0"
+          : align === "end"
+          ? "right-0 top-full mt-1.5"
+          : align === "start"
+          ? "left-0 top-full mt-1.5"
+          : align === "center"
+          ? "left-1/2 -translate-x-1/2 top-full mt-1.5"
+          : align === "left"
+          ? "right-full mr-2 top-0"
+          : "left-full ml-2 top-0",
         className,
       )}
     >
