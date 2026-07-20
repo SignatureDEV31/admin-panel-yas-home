@@ -47,6 +47,20 @@ export function PropertiesPageView() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
 
+  // Sorting State
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortOrder(field === "price" || field === "surface" ? "desc" : "asc");
+    }
+    setPage(1);
+  };
+
   // Fetch admin stats from GET /admin/stats
   const fetchStats = useCallback(async () => {
     try {
@@ -213,15 +227,45 @@ export function PropertiesPageView() {
     }
   };
 
-  // Client-side pagination slicing over complete dataset of 314 items
+  // Sorting and pagination slicing over dataset
   const totalItems = data?.length || 0;
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
-  const paginatedData = useMemo(() => {
+  const sortedData = useMemo(() => {
     if (!data) return [];
+    if (!sortField) return data;
+
+    return [...data].sort((a, b) => {
+      let valA: any = "";
+      let valB: any = "";
+
+      if (sortField === "title") {
+        valA = (a.title || a.propertyName || String(a.id || a._id || "")).toLowerCase();
+        valB = (b.title || b.propertyName || String(b.id || b._id || "")).toLowerCase();
+      } else if (sortField === "propertyType") {
+        valA = (a.propertyType || "").toLowerCase();
+        valB = (b.propertyType || "").toLowerCase();
+      } else if (sortField === "price") {
+        valA = Number(a.price) || 0;
+        valB = Number(b.price) || 0;
+      } else if (sortField === "surface") {
+        valA = Number(a.surface) || 0;
+        valB = Number(b.surface) || 0;
+      } else if (sortField === "location") {
+        valA = (a.city || a.state || a.wilaya || a.address || "").toLowerCase();
+        valB = (b.city || b.state || b.wilaya || b.address || "").toLowerCase();
+      }
+
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortField, sortOrder]);
+
+  const paginatedData = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return data.slice(start, start + pageSize);
-  }, [data, page, pageSize]);
+    return sortedData.slice(start, start + pageSize);
+  }, [sortedData, page, pageSize]);
 
   if (loading && !data) {
     return (
@@ -283,6 +327,9 @@ export function PropertiesPageView() {
               properties={paginatedData}
               onEdit={handleOpenEdit}
               onDelete={handleDeleteProperty}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSort={handleSort}
             />
 
             <PaginationControl

@@ -36,6 +36,20 @@ export const ProjectsPageView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
+  // Sorting State
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortOrder(field === "price" || field === "surface" ? "desc" : "asc");
+    }
+    setPage(1);
+  };
+
   // Modal Dialog States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -73,11 +87,42 @@ export const ProjectsPageView: React.FC = () => {
     return filterProjects(data, searchQuery, selectedStatus);
   }, [data, searchQuery, selectedStatus]);
 
+  // Client-side sorting
+  const sortedData = useMemo(() => {
+    if (!sortField) return filteredData;
+
+    return [...filteredData].sort((a, b) => {
+      let valA: any = "";
+      let valB: any = "";
+
+      if (sortField === "title") {
+        valA = (a.title || a.propertyName || String(a.id || a._id || "")).toLowerCase();
+        valB = (b.title || b.propertyName || String(b.id || b._id || "")).toLowerCase();
+      } else if (sortField === "status") {
+        valA = (a.status || a.projectStatus || "").toLowerCase();
+        valB = (b.status || b.projectStatus || "").toLowerCase();
+      } else if (sortField === "price") {
+        valA = Number(a.price) || 0;
+        valB = Number(b.price) || 0;
+      } else if (sortField === "surface") {
+        valA = Number(a.surface) || 0;
+        valB = Number(b.surface) || 0;
+      } else if (sortField === "location") {
+        valA = (a.city || a.state || a.wilaya || a.address || "").toLowerCase();
+        valB = (b.city || b.state || b.wilaya || b.address || "").toLowerCase();
+      }
+
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredData, sortField, sortOrder]);
+
   // Paginated Sliced Data
   const paginatedData = useMemo(() => {
     const startIndex = (page - 1) * pageSize;
-    return filteredData.slice(startIndex, startIndex + pageSize);
-  }, [filteredData, page, pageSize]);
+    return sortedData.slice(startIndex, startIndex + pageSize);
+  }, [sortedData, page, pageSize]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
 
@@ -201,6 +246,9 @@ export const ProjectsPageView: React.FC = () => {
             projects={paginatedData}
             onEdit={handleOpenEditModal}
             onDelete={handleDeleteProject}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSort={handleSort}
           />
 
           {/* Pagination Controls */}
