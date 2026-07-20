@@ -15,7 +15,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, MapPin, Maximize2, MoreVertical, Edit2, Trash2, ExternalLink } from "lucide-react";
+import {
+  Briefcase,
+  MapPin,
+  Maximize2,
+  MoreVertical,
+  Edit2,
+  Trash2,
+  ExternalLink,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 import { Project } from "@/services/projects/projects.service";
 import {
   formatPrice,
@@ -28,26 +39,88 @@ interface ProjectsTableProps {
   projects: Project[];
   onEdit?: (project: Project) => void;
   onDelete?: (id: string) => void;
+  sortField?: string | null;
+  sortOrder?: "asc" | "desc";
+  onSort?: (field: string) => void;
 }
 
 export const ProjectsTable: React.FC<ProjectsTableProps> = ({
   projects,
   onEdit,
   onDelete,
+  sortField,
+  sortOrder,
+  onSort,
 }) => {
   const params = useParams();
   const locale = (params?.locale as string) || "fr";
+
+  const renderSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 opacity-40 group-hover/sort:opacity-100 transition-opacity shrink-0" />;
+    }
+    return sortOrder === "asc" ? (
+      <ArrowUp className="h-3 w-3 text-yashomePink shrink-0 font-bold" />
+    ) : (
+      <ArrowDown className="h-3 w-3 text-yashomePink shrink-0 font-bold" />
+    );
+  };
 
   return (
     <div className="bg-card border border-border/80 rounded-xl overflow-hidden shadow-xs">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase">
-            <TableHead className="h-10 px-6 font-bold w-[35%] font-bold">Project ID / Name</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[16%] font-bold">Status</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[18%] font-bold">Starting Price</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[13%] hidden md:table-cell font-bold">Surface</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[10%] hidden lg:table-cell font-bold">Location</TableHead>
+          <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase select-none">
+            <TableHead className="h-10 px-6 font-bold w-[35%]">
+              <button
+                type="button"
+                onClick={() => onSort?.("title")}
+                className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group/sort text-left font-bold uppercase"
+              >
+                <span>Project ID / Name</span>
+                {renderSortIcon("title")}
+              </button>
+            </TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[16%]">
+              <button
+                type="button"
+                onClick={() => onSort?.("status")}
+                className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group/sort text-left font-bold uppercase"
+              >
+                <span>Status</span>
+                {renderSortIcon("status")}
+              </button>
+            </TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[18%]">
+              <button
+                type="button"
+                onClick={() => onSort?.("price")}
+                className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group/sort text-left font-bold uppercase"
+              >
+                <span>Starting Price</span>
+                {renderSortIcon("price")}
+              </button>
+            </TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[13%] hidden md:table-cell">
+              <button
+                type="button"
+                onClick={() => onSort?.("surface")}
+                className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group/sort text-left font-bold uppercase"
+              >
+                <span>Surface</span>
+                {renderSortIcon("surface")}
+              </button>
+            </TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[10%] hidden lg:table-cell">
+              <button
+                type="button"
+                onClick={() => onSort?.("location")}
+                className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group/sort text-left font-bold uppercase"
+              >
+                <span>Location</span>
+                {renderSortIcon("location")}
+              </button>
+            </TableHead>
             <TableHead className="h-10 px-6 font-bold w-[8%] text-right font-bold">Actions</TableHead>
           </TableRow>
         </TableHeader>
