@@ -95,15 +95,18 @@ export function OverviewPageView() {
       unknown: { label: "Unknown", fill: CHART_COLORS.slate }
     };
 
-    return data.userStats.byRole.map(item => {
-      const roleKey = (item.role || "").toLowerCase().trim();
-      const config = roleMapping[roleKey] || { label: item.role, fill: CHART_COLORS.slate };
-      return {
-        name: config.label,
-        value: Number(item.count || 0),
-        fill: config.fill
-      };
-    }).filter(item => item.value > 0);
+    return data.userStats.byRole
+      .map(item => {
+        const roleKey = (item.role || "").toLowerCase().trim();
+        const config = roleMapping[roleKey] || { label: item.role, fill: CHART_COLORS.slate };
+        return {
+          name: config.label,
+          value: Number(item.count || 0),
+          fill: config.fill
+        };
+      })
+      .filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value);
   }, [data]);
 
   const topWilayas = useMemo(() => {
