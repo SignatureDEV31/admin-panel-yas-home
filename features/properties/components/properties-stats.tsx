@@ -4,15 +4,48 @@ import { Building2, Tag, KeyRound, MapPin } from "lucide-react";
 import { Property } from "@/features/properties/types/property";
 import { calculatePropertyStats } from "@/features/properties/utils/properties-utils";
 
+import { AdminStats } from "@/services/types/admin.types";
+
 interface PropertiesStatsProps {
   properties: Property[];
+  totalCount?: number;
+  adminStats?: AdminStats | null;
 }
 
-export const PropertiesStats: React.FC<PropertiesStatsProps> = ({ properties }) => {
+export const PropertiesStats: React.FC<PropertiesStatsProps> = ({
+  properties,
+  totalCount,
+  adminStats,
+}) => {
   const { total, forSale, forRent, uniqueStatesCount } = useMemo(
     () => calculatePropertyStats(properties),
     [properties]
   );
+
+  const displayTotal = totalCount !== undefined ? totalCount : (adminStats?.properties ?? total);
+
+  const displayForSale = useMemo(() => {
+    if (adminStats?.propertiesByType) {
+      const match = adminStats.propertiesByType.find((p) => (p.type || "").toUpperCase() === "VENTE");
+      if (match) return Number(match.count || 0);
+    }
+    return forSale;
+  }, [adminStats, forSale]);
+
+  const displayForRent = useMemo(() => {
+    if (adminStats?.propertiesByType) {
+      const match = adminStats.propertiesByType.find((p) => (p.type || "").toUpperCase() === "LOCATION");
+      if (match) return Number(match.count || 0);
+    }
+    return forRent;
+  }, [adminStats, forRent]);
+
+  const displayWilayas = useMemo(() => {
+    if (adminStats?.propertiesByWilaya && adminStats.propertiesByWilaya.length > 0) {
+      return adminStats.propertiesByWilaya.length;
+    }
+    return uniqueStatesCount;
+  }, [adminStats, uniqueStatesCount]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -26,7 +59,7 @@ export const PropertiesStats: React.FC<PropertiesStatsProps> = ({ properties }) 
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {total}
+            {displayTotal}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 font-medium">
             Active real estate catalog entries
@@ -44,7 +77,7 @@ export const PropertiesStats: React.FC<PropertiesStatsProps> = ({ properties }) 
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {forSale}
+            {displayForSale}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 font-medium">
             Properties listed for purchase
@@ -62,7 +95,7 @@ export const PropertiesStats: React.FC<PropertiesStatsProps> = ({ properties }) 
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {forRent}
+            {displayForRent}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 font-medium">
             Properties listed for rental
@@ -80,7 +113,7 @@ export const PropertiesStats: React.FC<PropertiesStatsProps> = ({ properties }) 
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {uniqueStatesCount}
+            {displayWilayas}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 font-medium">
             Distinct geographical regions covered

@@ -43,12 +43,12 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase">
-            <TableHead className="h-10 px-6 font-bold w-[35%]">Property ID / Title</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[12%]">Type</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[18%]">Price</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[13%] hidden md:table-cell">Surface</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[14%] hidden lg:table-cell">Location</TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[8%] text-right">Actions</TableHead>
+            <TableHead className="h-10 px-4 font-bold w-[20%]">Property ID / Title</TableHead>
+            <TableHead className="h-10 px-4 font-bold w-[20%]">Type</TableHead>
+            <TableHead className="h-10 px-4 font-bold w-[20%]">Price</TableHead>
+            <TableHead className="h-10 px-4 font-bold w-[14%] hidden md:table-cell">Surface</TableHead>
+            <TableHead className="h-10 px-4 font-bold w-[16%] hidden lg:table-cell">Location</TableHead>
+            <TableHead className="h-10 px-4 font-bold w-[10%] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border/40">
@@ -64,11 +64,11 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
               typeof property.mainImage === "string"
                 ? property.mainImage
                 : property.mainImage?.url ||
-                  (property.images && property.images.length > 0
-                    ? typeof property.images[0] === "string"
-                      ? property.images[0]
-                      : property.images[0].url
-                    : null);
+                (property.images && property.images.length > 0
+                  ? typeof property.images[0] === "string"
+                    ? property.images[0]
+                    : property.images[0].url
+                  : null);
 
             return (
               <TableRow
@@ -76,7 +76,7 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
                 className="hover:bg-muted/5 transition-colors border-border/40 group/row"
               >
                 {/* Main Photo + ID + Title + Category */}
-                <TableCell className="px-6 py-3.5 font-medium align-middle">
+                <TableCell className="px-4 py-3.5 font-medium align-middle">
                   <div className="flex items-center gap-3">
                     {/* Clickable Photo Thumbnail */}
                     <Link
@@ -125,27 +125,26 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
                 </TableCell>
 
                 {/* Property Type (Vente / Location) */}
-                <TableCell className="px-6 py-3.5 align-middle">
+                <TableCell className="px-4 py-3.5 align-middle">
                   <span
-                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${
-                      isSale
+                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${isSale
                         ? "bg-yashomePink/10 text-yashomePink border-yashomePink/20"
                         : "bg-main/10 text-main dark:text-foreground border-main/20"
-                    }`}
+                      }`}
                   >
                     {isSale ? "VENTE" : "LOCATION"}
                   </span>
                 </TableCell>
 
                 {/* Price */}
-                <TableCell className="px-6 py-3.5 align-middle font-bold text-foreground text-sm">
+                <TableCell className="px-4 py-3.5 align-middle font-bold text-foreground text-sm">
                   <Link href={detailUrl} className="hover:text-yashomePink transition-colors">
                     {formatPrice(property.price)}
                   </Link>
                 </TableCell>
 
                 {/* Surface */}
-                <TableCell className="px-6 py-3.5 align-middle text-muted-foreground text-sm font-medium hidden md:table-cell">
+                <TableCell className="px-4 py-3.5 align-middle text-muted-foreground text-sm font-medium hidden md:table-cell">
                   <div className="flex items-center gap-1.5">
                     <Maximize2 className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                     <span>{formatSurface(property.surface)}</span>
@@ -153,7 +152,7 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
                 </TableCell>
 
                 {/* Location */}
-                <TableCell className="px-6 py-3.5 align-middle text-muted-foreground text-sm font-medium hidden lg:table-cell">
+                <TableCell className="px-4 py-3.5 align-middle text-muted-foreground text-sm font-medium hidden lg:table-cell">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
                     <span className="truncate max-w-[180px]">{locationLabel}</span>
@@ -161,7 +160,7 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
                 </TableCell>
 
                 {/* Actions Dropdown */}
-                <TableCell className="px-6 py-3.5 text-right align-middle">
+                <TableCell className="px-4 py-3.5 text-right align-middle">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="cursor-pointer h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 transition-all select-none ml-auto">
                       <MoreVertical className="h-4 w-4" />

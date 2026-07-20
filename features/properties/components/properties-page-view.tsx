@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import {
   getUnifiedSearchPaginated,
@@ -9,8 +9,9 @@ import {
   deleteProperty,
   CreatePropertyPayload,
 } from "@/services/properties/properties.service";
+import { getAdminStats } from "@/services/admin/admin.service";
+import { AdminStats } from "@/services/types/admin.types";
 import { Property } from "@/features/properties/types/property";
-import { filterProperties } from "@/features/properties/utils/properties-utils";
 import { useMounted } from "@/hooks/use-mounted";
 
 import { PropertiesHeader } from "./properties-header";
@@ -28,13 +29,13 @@ export function PropertiesPageView() {
   const isMounted = useMounted();
 
   const [data, setData] = useState<Property[] | null>(null);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Pagination State
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
 
   // Dialog & Mutation States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,19 +44,83 @@ export function PropertiesPageView() {
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
 
-  const fetchAllProperties = async () => {
+  // Fetch admin stats from GET /admin/stats
+  const fetchStats = useCallback(async () => {
+    try {
+      const stats = await getAdminStats();
+      setAdminStats(stats);
+    } catch (err) {
+      console.warn("Could not fetch admin stats:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Debounce search query changes
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Fetch all properties by batching requests of limit=50 up to total items count
+  const fetchAllProperties = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await getUnifiedSearchPaginated({
+      // 1. Fetch first batch (50 items)
+      const firstBatch = await getUnifiedSearchPaginated({
         searchIn: "properties",
-        limit: 50,
         page: 1,
+        limit: 50,
+        keyword: debouncedSearchQuery.trim() || undefined,
+        propertyType: selectedType !== "all" ? selectedType : undefined,
       });
-      setData(result.data || []);
-      setTotalItems(result.total || result.data?.length || 0);
+
+      let allProps = firstBatch.data || [];
+      const totalFromApi = firstBatch.total || adminStats?.properties || 314;
+
+      // 2. If there are more items to fetch beyond batch 1, fetch remaining batches in parallel
+      if (firstBatch.data?.length === 50 && totalFromApi > 50) {
+        const totalBatches = Math.ceil(totalFromApi / 50);
+        const batchPromises = [];
+        for (let p = 2; p <= totalBatches; p++) {
+          batchPromises.push(
+            getUnifiedSearchPaginated({
+              searchIn: "properties",
+              page: p,
+              limit: 50,
+              keyword: debouncedSearchQuery.trim() || undefined,
+              propertyType: selectedType !== "all" ? selectedType : undefined,
+            })
+          );
+        }
+
+        const additionalBatches = await Promise.all(batchPromises);
+        additionalBatches.forEach((batch) => {
+          if (batch.data && batch.data.length > 0) {
+            allProps = [...allProps, ...batch.data];
+          }
+        });
+      }
+
+      // Deduplicate by property ID
+      const seenIds = new Set<string>();
+      const uniqueProps = allProps.filter((p) => {
+        const id = String(p.id || p._id || "");
+        if (!id || seenIds.has(id)) return false;
+        seenIds.add(id);
+        return true;
+      });
+
+      setData(uniqueProps);
     } catch (err: any) {
       console.error("Failed to load properties:", err);
       setError(
@@ -66,16 +131,26 @@ export function PropertiesPageView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearchQuery, selectedType, adminStats]);
 
   useEffect(() => {
     fetchAllProperties();
-  }, []);
+  }, [fetchAllProperties]);
 
-  // Reset to page 1 whenever filters change
+  // Reset page when filters change
   useEffect(() => {
     setPage(1);
   }, [searchQuery, selectedType]);
+
+  const handleTypeChange = (newType: string) => {
+    setSelectedType(newType);
+    setPage(1);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setPage(1);
+  };
 
   const handleOpenAdd = () => {
     setEditingProperty(null);
@@ -96,21 +171,16 @@ export function PropertiesPageView() {
     try {
       if (editingProperty) {
         const targetId = editingProperty.id || editingProperty._id || "";
-        const updated = await updateProperty(targetId, payload);
-
-        setData((prev) =>
-          prev
-            ? prev.map((p) => ((p.id || p._id) === targetId ? { ...p, ...updated } : p))
-            : [updated]
-        );
+        await updateProperty(targetId, payload);
         toast.success("Property updated successfully!", { id: toastId });
       } else {
-        const created = await createProperty(payload);
-        setData((prev) => (prev ? [created, ...prev] : [created]));
+        await createProperty(payload);
         toast.success("Property created successfully!", { id: toastId });
       }
       setIsDialogOpen(false);
       setEditingProperty(null);
+      await fetchStats();
+      await fetchAllProperties();
     } catch (err: any) {
       console.error("Property operation failed:", err);
       const errMsg =
@@ -130,8 +200,9 @@ export function PropertiesPageView() {
     const toastId = toast.loading("Deleting property...");
     try {
       await deleteProperty(id);
-      setData((prev) => (prev ? prev.filter((p) => (p.id || p._id) !== id) : []));
       toast.success("Property deleted successfully!", { id: toastId });
+      await fetchStats();
+      await fetchAllProperties();
     } catch (err: any) {
       console.error("Failed to delete property:", err);
       const errMsg =
@@ -142,20 +213,17 @@ export function PropertiesPageView() {
     }
   };
 
-  const filteredProperties = useMemo(() => {
-    return filterProperties(data || [], searchQuery, selectedType, "all");
-  }, [data, searchQuery, selectedType]);
+  // Client-side pagination slicing over complete dataset of 314 items
+  const totalItems = data?.length || 0;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
-  // Paginated View Slice
-  const totalFilteredCount = filteredProperties.length;
-  const totalPages = Math.ceil(totalFilteredCount / pageSize) || 1;
-
-  const paginatedProperties = useMemo(() => {
+  const paginatedData = useMemo(() => {
+    if (!data) return [];
     const start = (page - 1) * pageSize;
-    return filteredProperties.slice(start, start + pageSize);
-  }, [filteredProperties, page, pageSize]);
+    return data.slice(start, start + pageSize);
+  }, [data, page, pageSize]);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="space-y-6">
         <PropertiesHeader onAddClick={handleOpenAdd} />
@@ -164,7 +232,7 @@ export function PropertiesPageView() {
     );
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="space-y-6">
         <PropertiesHeader onAddClick={handleOpenAdd} />
@@ -173,38 +241,46 @@ export function PropertiesPageView() {
     );
   }
 
+  const isFiltered = searchQuery !== "" || selectedType !== "all";
   const hasData = data && data.length > 0;
-  const hasSearchResults = filteredProperties.length > 0;
+  const overallKpiCount = adminStats?.properties !== undefined ? adminStats.properties : totalItems;
 
   return (
     <div className="space-y-6">
       <PropertiesHeader onAddClick={handleOpenAdd} />
 
-      {isMounted && <PropertiesStats properties={data || []} />}
+      {isMounted && (
+        <PropertiesStats
+          properties={data || []}
+          totalCount={overallKpiCount}
+          adminStats={adminStats}
+        />
+      )}
 
       <PropertiesToolbar
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={handleSearchChange}
         selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        resultsCount={filteredProperties.length}
+        setSelectedType={handleTypeChange}
+        resultsCount={totalItems}
       />
 
-      {!hasData ? (
+      {!hasData && !isFiltered ? (
         <PropertiesEmptyState type="all" />
-      ) : !hasSearchResults ? (
+      ) : !hasData && isFiltered ? (
         <PropertiesEmptyState
           type="filtered"
           onClearFilters={() => {
             setSearchQuery("");
             setSelectedType("all");
+            setPage(1);
           }}
         />
       ) : (
         isMounted && (
           <div className="space-y-4">
             <PropertiesTable
-              properties={paginatedProperties}
+              properties={paginatedData}
               onEdit={handleOpenEdit}
               onDelete={handleDeleteProperty}
             />
@@ -212,13 +288,14 @@ export function PropertiesPageView() {
             <PaginationControl
               currentPage={page}
               totalPages={totalPages}
-              totalItems={totalFilteredCount}
+              totalItems={totalItems}
               pageSize={pageSize}
               onPageChange={setPage}
               onPageSizeChange={(newSize) => {
                 setPageSize(newSize);
                 setPage(1);
               }}
+              pageSizeOptions={[10, 20, 50]}
             />
           </div>
         )
