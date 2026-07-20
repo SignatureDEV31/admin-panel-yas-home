@@ -109,15 +109,7 @@ export function useProperties() {
         });
       }
 
-      const seenIds = new Set<string>();
-      const uniqueProps = allProps.filter((p) => {
-        const id = String(p.id || p._id || "");
-        if (!id || seenIds.has(id)) return false;
-        seenIds.add(id);
-        return true;
-      });
-
-      setData(uniqueProps);
+      setData(allProps);
     } catch (err: any) {
       console.error("Failed to load properties:", err);
       setError(

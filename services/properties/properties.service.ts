@@ -266,7 +266,10 @@ export async function getPropertyById(id: string): Promise<Property> {
     if (item) {
       return item;
     }
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.response?.status === 401 || error?.response?.status === 403) {
+      throw error;
+    }
     console.warn(`GET /properties/${id} failed, attempting search fallback for ID ${id}:`, error);
   }
 

@@ -61,7 +61,10 @@ export async function getProjects(params?: Record<string, any>): Promise<Project
     if (Array.isArray(data?.data)) return data.data;
     if (Array.isArray(data?.projects)) return data.projects;
     if (Array.isArray(data?.items)) return data.items;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.response?.status === 401 || error?.response?.status === 403) {
+      throw error;
+    }
     console.warn("GET /projects failed, falling back to unified-search:", error);
   }
 

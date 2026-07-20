@@ -127,7 +127,7 @@ export const PropertiesTable: React.FC<PropertiesTableProps> = ({
         <TableBody className="divide-y divide-border/40">
           {properties.map((property) => {
             const propertyId = property.id || property._id || "";
-            const detailUrl = `/${locale}/properties/${propertyId}`;
+            const detailUrl = `/${locale}/properties/edit/${propertyId}`;
             const isSale = (property.propertyType || "").toUpperCase() === "VENTE";
             const categoryLabel = getPropertyCategory(property);
             const locationLabel = getPropertyLocation(property);

@@ -1,4 +1,4 @@
-import { PropertyDetailPageView } from "@/features/properties/components/property-detail-page-view";
+import { redirect } from "next/navigation";
 
 interface PropertyPageProps {
   params: Promise<{
@@ -9,10 +9,8 @@ interface PropertyPageProps {
 
 export default async function PropertyPage({ params }: PropertyPageProps) {
   const resolvedParams = await params;
-  return (
-    <PropertyDetailPageView
-      id={resolvedParams?.id || ""}
-      locale={resolvedParams?.locale || "fr"}
-    />
-  );
+  const locale = resolvedParams?.locale || "fr";
+  const id = resolvedParams?.id || "";
+
+  redirect(`/${locale}/properties/edit/${id}`);
 }
