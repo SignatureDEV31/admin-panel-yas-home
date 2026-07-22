@@ -71,7 +71,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/10 border-border/50 text-xs font-bold text-muted-foreground uppercase select-none">
-            <TableHead className="h-10 px-6 font-bold w-[35%]">
+            <TableHead className="h-10 px-6 font-bold w-[25%]">
               <button
                 type="button"
                 onClick={() => onSort?.("title")}
@@ -81,7 +81,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
                 {renderSortIcon("title")}
               </button>
             </TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[16%]">
+            <TableHead className="h-10 px-6 font-bold w-[20%]">
               <button
                 type="button"
                 onClick={() => onSort?.("status")}
@@ -91,7 +91,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
                 {renderSortIcon("status")}
               </button>
             </TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[18%]">
+            <TableHead className="h-10 px-6 font-bold w-[20%]">
               <button
                 type="button"
                 onClick={() => onSort?.("price")}
@@ -101,7 +101,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
                 {renderSortIcon("price")}
               </button>
             </TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[13%] hidden md:table-cell">
+            <TableHead className="h-10 px-6 font-bold w-[17%] hidden md:table-cell">
               <button
                 type="button"
                 onClick={() => onSort?.("surface")}
@@ -111,7 +111,7 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
                 {renderSortIcon("surface")}
               </button>
             </TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[10%] hidden lg:table-cell">
+            <TableHead className="h-10 px-6 font-bold w-[15%] hidden lg:table-cell">
               <button
                 type="button"
                 onClick={() => onSort?.("location")}
@@ -121,7 +121,9 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
                 {renderSortIcon("location")}
               </button>
             </TableHead>
-            <TableHead className="h-10 px-6 font-bold w-[8%] text-right font-bold">Actions</TableHead>
+            <TableHead className="h-10 px-6 font-bold w-[10%] text-right font-bold">
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border/40">
@@ -135,11 +137,11 @@ export const ProjectsTable: React.FC<ProjectsTableProps> = ({
               typeof project.mainImage === "string"
                 ? project.mainImage
                 : project.mainImage?.url ||
-                  (project.images && project.images.length > 0
-                    ? typeof project.images[0] === "string"
-                      ? project.images[0]
-                      : project.images[0].url
-                    : null);
+                (project.images && project.images.length > 0
+                  ? typeof project.images[0] === "string"
+                    ? project.images[0]
+                    : project.images[0].url
+                  : null);
 
             return (
               <TableRow
