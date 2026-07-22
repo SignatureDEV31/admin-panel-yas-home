@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { SidebarItem } from "../data/types";
+import { SidebarItem } from "./data/types";
 
 interface SidebarNavItemExpandedProps {
   item: SidebarItem;
@@ -36,7 +36,7 @@ export const SidebarNavItemExpanded = ({
             className={cn(
               "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer",
               isActive
-                ? "bg-primary/10 text-primary font-bold"
+                ? "bg-yashomePink/70 text-primary font-bold"
                 : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
             )}
           >
@@ -71,7 +71,7 @@ export const SidebarNavItemExpanded = ({
                       className={cn(
                         "block py-1.5 px-3 text-sm font-medium rounded-md transition-colors truncate whitespace-nowrap",
                         isChildActive
-                          ? "bg-primary/10 text-primary font-semibold"
+                          ? "bg-yashomePink/30 text-primary font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
                       )}
                     >
