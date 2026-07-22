@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSidebar } from "./sidebar-context";
-import { ModeToggle } from "../header/mode-toggle";
+import { ModeToggle } from "../../header/mode-toggle";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { SidebarNavContent } from "./sidebar-nav-content";

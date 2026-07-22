@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { SidebarItem } from "./data/types";
+import { SidebarItem } from "../data/types";
 
 interface SidebarNavItemExpandedProps {
   item: SidebarItem;

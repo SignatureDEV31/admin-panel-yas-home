@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SidebarItem } from "./data/types";
+import { SidebarItem } from "../data/types";
 import { SidebarNavItemCollapsed } from "./sidebar-nav-item-collapsed";
 import { SidebarNavItemExpanded } from "./sidebar-nav-item-expanded";
 

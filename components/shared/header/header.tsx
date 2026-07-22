@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Menu, Bell } from "lucide-react";
-import { useSidebar } from "../side-bar/sidebar-context";
+import { useSidebar } from "../side-bar/content/sidebar-context";
 import { useAuth } from "@/contexts/auth-context";
 import { ModeToggle } from "./mode-toggle";
 

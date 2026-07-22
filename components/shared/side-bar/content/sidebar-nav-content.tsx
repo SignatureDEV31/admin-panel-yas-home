@@ -3,8 +3,8 @@
 import React from "react";
 import { usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { useSidebarNavigation } from "./hooks/use-sidebar-navigation";
-import { menuGroups } from "./data/data";
+import { useSidebarNavigation } from "../hooks/use-sidebar-navigation";
+import { menuGroups } from "../data/data";
 import { SidebarNavItem } from "./sidebar-nav-item";
 
 interface SidebarNavContentProps {

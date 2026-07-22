@@ -5,7 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useSidebar } from "./sidebar-context";
 import { cn } from "@/lib/utils";
-import { SidebarItem } from "./data/types";
+import { SidebarItem } from "../data/types";
 
 interface SidebarNavItemCollapsedProps {
   item: SidebarItem;

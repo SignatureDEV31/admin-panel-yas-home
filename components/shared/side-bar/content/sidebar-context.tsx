@@ -49,5 +49,5 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export { useSidebar } from "./hooks/use-sidebar";
+export { useSidebar } from "../hooks/use-sidebar";
 

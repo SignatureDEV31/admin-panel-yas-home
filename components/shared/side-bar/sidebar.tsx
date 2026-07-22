@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { SidebarMobile } from "./sidebar-mobile";
-import { SidebarDesktop } from "./sidebar-desktop";
-import { useSidebar } from "./sidebar-context";
+import { SidebarMobile } from "./content/sidebar-mobile";
+import { SidebarDesktop } from "./content/sidebar-desktop";
+import { useSidebar } from "./content/sidebar-context";
 import { cn } from "@/lib/utils";
 
 export const Sidebar = () => {
