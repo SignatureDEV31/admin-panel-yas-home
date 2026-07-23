@@ -257,7 +257,7 @@ export async function getPropertyById(id: string): Promise<Property> {
       return item;
     }
   } catch (error: any) {
-    if (error?.response?.status === 401 || error?.response?.status === 403) {
+    if (error?.response?.status === 401) {
       throw error;
     }
     console.warn(`GET /properties/${id} failed, attempting search fallback for ID ${id}:`, error);
@@ -265,7 +265,7 @@ export async function getPropertyById(id: string): Promise<Property> {
 
   // Fallback: search unified search for the property by ID
   try {
-    const all = await getProperties({ limit: 50 });
+    const all = await getProperties({ limit: 100 });
     const match = all.find((p) => String(p.id) === String(id) || String(p._id) === String(id));
     if (match) return match;
   } catch (err) {

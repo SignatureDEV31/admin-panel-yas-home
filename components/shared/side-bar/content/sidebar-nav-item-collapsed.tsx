@@ -29,7 +29,7 @@ export const SidebarNavItemCollapsed = ({
           className={cn(
             "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
             isActive
-              ? "bg-primary/10 text-primary"
+              ? "bg-yashomePink text-primary"
               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           )}
         >
@@ -40,7 +40,7 @@ export const SidebarNavItemCollapsed = ({
           className={cn(
             "flex items-center justify-center h-10 w-10 rounded-lg cursor-pointer transition-all duration-200",
             isActive
-              ? "bg-primary/10 text-primary"
+              ? "bg-yashomePink text-primary"
               : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           )}
         >

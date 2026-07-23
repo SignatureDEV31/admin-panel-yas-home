@@ -37,7 +37,7 @@ export const SidebarNavItemExpanded = ({
               "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer",
               isActive
                 ? "bg-yashomePink text-primary font-bold"
-                : "text-muted-foreground hover:bg-yashomePink/10 hover:text-sidebar-accent-foreground",
+                : "text-muted-foreground hover:bg-yashomePink hover:text-sidebar-accent-foreground",
             )}
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden pr-1">
@@ -72,7 +72,7 @@ export const SidebarNavItemExpanded = ({
                         "block py-1.5 px-3 text-sm font-medium rounded-md transition-colors truncate whitespace-nowrap",
                         isChildActive
                           ? "bg-yashomePink text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground hover:bg-yashomePink/10",
+                          : "text-muted-foreground hover:text-foreground hover:bg-yashomePink",
                       )}
                     >
                       {t(`menu.${child.labelKey}`)}
@@ -91,7 +91,7 @@ export const SidebarNavItemExpanded = ({
           className={cn(
             "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer",
             isActive
-              ? "bg-primary/10 text-primary font-bold"
+              ? "bg-yashomePink text-primary font-bold"
               : "text-muted-foreground hover:bg-yashomePink hover:text-sidebar-accent-foreground",
           )}
         >
