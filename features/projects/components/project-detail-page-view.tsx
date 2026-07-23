@@ -1,20 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import {
-  getProjectById,
-  updateProject,
-  deleteProject,
-  uploadProjectImages,
-  deleteProjectImage,
-  updateProjectMainImage,
-  updateProjectPlanImage,
-  Project,
-} from "@/services/projects/projects.service";
-import { PropertyImageItem } from "@/services/properties/properties.service";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyPhotoGallery } from "@/features/properties/components/property-photo-gallery";
@@ -30,14 +18,11 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  MapPin,
-  Maximize2,
-  DollarSign,
-  FileImage,
-  Star,
 } from "lucide-react";
-import { formatPrice, formatSurface } from "@/features/properties/utils/properties-utils";
+import { formatPrice } from "@/features/properties/utils/properties-utils";
 import { getProjectStatusBadge } from "@/features/projects/utils/projects-utils";
+import { PropertyImageItem } from "@/services/properties/properties.service";
+import { useProjectDetail } from "../hooks/use-project-detail";
 
 interface ProjectDetailPageViewProps {
   id?: string;
@@ -45,157 +30,33 @@ interface ProjectDetailPageViewProps {
 }
 
 export function ProjectDetailPageView({ id: propId, locale: propLocale }: ProjectDetailPageViewProps) {
-  const router = useRouter();
   const routeParams = useParams();
 
   const id = propId || (routeParams?.id as string) || "";
   const locale = propLocale || (routeParams?.locale as string) || "fr";
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const {
+    project,
+    loading,
+    error,
+    saving,
+    uploading,
+    form,
+    fetchProjectData,
+    handleSaveChanges,
+    handleDeleteProject,
+    handleImageUpload,
+    handleSetMainImage,
+    handleSetPlanImage,
+    handleDeleteImage,
+  } = useProjectDetail(id, locale);
 
-  // Form state
-  const [title, setTitle] = useState("");
-  const [projectStatus, setProjectStatus] = useState("UNDER_CONSTRUCTION");
-  const [price, setPrice] = useState("");
-  const [surface, setSurface] = useState("");
-  const [category, setCategory] = useState("");
-  const [state, setState] = useState("");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
-  const [description, setDescription] = useState("");
-
-  const fetchProjectData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getProjectById(id);
-      setProject(data);
-
-      const pObj = (data as any)?.project || data;
-      setTitle(pObj.title || pObj.propertyName || "");
-      const pStatus = (pObj.projectStatus || "UNDER_CONSTRUCTION").toUpperCase();
-      setProjectStatus(pStatus === "FINISHED" || pStatus === "ANNOUNCEMENT" ? pStatus : "UNDER_CONSTRUCTION");
-      setPrice(pObj.price ? String(pObj.price) : "");
-      setSurface(pObj.surface ? String(pObj.surface) : "");
-      setCategory(typeof pObj.category === "string" ? pObj.category : pObj.category?.name || "Residence Complex");
-      setState(pObj.state || pObj.wilaya || "Oran");
-      setCity(pObj.city || "");
-      setAddress(pObj.address || pObj.adress || "");
-      setDescription(pObj.description || "");
-    } catch (err: any) {
-      console.error(`Failed to fetch project ${id}:`, err);
-      setError(err?.response?.data?.message || err?.message || `Failed to load project ID #${id}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) fetchProjectData();
-  }, [id]);
-
-  const handleSaveChanges = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Project title is required");
-      return;
-    }
-
-    setSaving(true);
-    const toastId = toast.loading("Saving project updates...");
-    try {
-      const payload = {
-        title: title.trim(),
-        projectStatus,
-        price: price !== "" ? Number(price) : undefined,
-        surface: surface !== "" ? Number(surface) : undefined,
-        category: category.trim() || undefined,
-        state: state.trim() || undefined,
-        city: city.trim() || undefined,
-        address: address.trim() || undefined,
-        description: description.trim() || undefined,
-      };
-
-      await updateProject(id, payload);
-      await fetchProjectData();
-      toast.success("Project updated successfully!", { id: toastId });
-    } catch (err: any) {
-      console.error("Failed to update project:", err);
-      toast.error(err?.response?.data?.message || err?.message || "Failed to update project.", { id: toastId });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteProject = async () => {
-    if (!window.confirm("Are you sure you want to delete this real-estate project?")) return;
-    const toastId = toast.loading("Deleting project...");
-    try {
-      await deleteProject(id);
-      toast.success("Project deleted successfully!", { id: toastId });
-      router.push(`/${locale}/projects`);
-    } catch (err: any) {
-      toast.error("Failed to delete project.", { id: toastId });
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append("files", file));
-
-    setUploading(true);
-    const toastId = toast.loading("Uploading project image(s)...");
-    try {
-      await uploadProjectImages(id, formData);
-      toast.success("Image(s) uploaded successfully!", { id: toastId });
-      await fetchProjectData();
-    } catch (err: any) {
-      toast.error("Failed to upload image(s).", { id: toastId });
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  };
-
-  const handleSetMainImage = async (imageId: string) => {
-    const toastId = toast.loading("Setting main project image...");
-    try {
-      await updateProjectMainImage(id, imageId);
-      toast.success("Main image updated!", { id: toastId });
-      await fetchProjectData();
-    } catch (err: any) {
-      toast.error("Failed to set main image.", { id: toastId });
-    }
-  };
-
-  const handleSetPlanImage = async (imageId: string) => {
-    const toastId = toast.loading("Setting plan image...");
-    try {
-      await updateProjectPlanImage(id, imageId);
-      toast.success("Plan image updated!", { id: toastId });
-      await fetchProjectData();
-    } catch (err: any) {
-      toast.error("Failed to set plan image.", { id: toastId });
-    }
-  };
-
-  const handleDeleteImage = async (imageId: string) => {
-    if (!window.confirm("Delete this image?")) return;
-    const toastId = toast.loading("Deleting image...");
-    try {
-      await deleteProjectImage(imageId);
-      toast.success("Image deleted!", { id: toastId });
-      await fetchProjectData();
-    } catch (err: any) {
-      toast.error("Failed to delete image.", { id: toastId });
-    }
-  };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = form;
 
   if (loading) {
     return (
@@ -240,6 +101,11 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
   }
 
   const pObj = (project as any)?.project || project;
+  const projectStatus = watch("projectStatus") || "UNDER_CONSTRUCTION";
+  const title = watch("title") || "";
+  const price = watch("price") || "";
+  const category = watch("category") || "";
+
   const statusBadge = getProjectStatusBadge(projectStatus);
   const rawMainImage = typeof pObj.mainImage === "string" ? pObj.mainImage : pObj.mainImage?.url || project.mainImage;
   const rawImagesList = pObj.images || project.images || [];
@@ -293,7 +159,7 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
 
           <Button
             type="submit"
-            onClick={handleSaveChanges}
+            form="project-detail-form"
             disabled={saving}
             className="cursor-pointer bg-yashomePink text-white hover:bg-yashomePink/90 font-bold h-10 px-5 rounded-md transition-all text-sm flex items-center gap-1.5 shadow-sm"
           >
@@ -359,7 +225,11 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
 
         {/* Right Column: Edit Form */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSaveChanges} className="bg-card border border-border/80 rounded-xl p-6 shadow-xs space-y-6">
+          <form
+            id="project-detail-form"
+            onSubmit={handleSubmit(handleSaveChanges)}
+            className="bg-card border border-border/80 rounded-xl p-6 shadow-xs space-y-6"
+          >
             <h2 className="text-base font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
               <Briefcase className="h-5 w-5 text-yashomePink" />
               <span>Project Details & Specifications</span>
@@ -368,16 +238,16 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
             <FormInput
               label="Project Title / Name"
               required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              {...register("title")}
+              error={errors.title?.message}
               placeholder="e.g. Residence El Yasmine - Block A"
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormSelect
                 label="Development Status"
-                value={projectStatus}
-                onChange={(e) => setProjectStatus(e.target.value)}
+                {...register("projectStatus")}
+                error={errors.projectStatus?.message}
                 options={[
                   { value: "ANNOUNCEMENT", label: "Announcement (Lancement)" },
                   { value: "UNDER_CONSTRUCTION", label: "Under Construction (En Construction)" },
@@ -387,8 +257,8 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
 
               <FormInput
                 label="Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                {...register("category")}
+                error={errors.category?.message}
                 placeholder="e.g. Residence Complex..."
               />
             </div>
@@ -397,16 +267,16 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
               <FormInput
                 label="Starting Price (DZD)"
                 type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                {...register("price")}
+                error={errors.price?.message}
                 placeholder="e.g. 18000000"
               />
 
               <FormInput
                 label="Total Surface (m²)"
                 type="number"
-                value={surface}
-                onChange={(e) => setSurface(e.target.value)}
+                {...register("surface")}
+                error={errors.surface?.message}
                 placeholder="e.g. 450"
               />
             </div>
@@ -414,31 +284,31 @@ export function ProjectDetailPageView({ id: propId, locale: propLocale }: Projec
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput
                 label="State / Wilaya"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
+                {...register("state")}
+                error={errors.state?.message}
                 placeholder="e.g. Oran"
               />
 
               <FormInput
                 label="City / Commune"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+                {...register("city")}
+                error={errors.city?.message}
                 placeholder="e.g. Bir El Djir"
               />
             </div>
 
             <FormInput
               label="Full Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              {...register("address")}
+              error={errors.address?.message}
               placeholder="Full location..."
             />
 
             <FormTextarea
               label="Project Description"
               rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register("description")}
+              error={errors.description?.message}
               placeholder="Project description, construction timeline..."
             />
 

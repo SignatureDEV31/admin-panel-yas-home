@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { useProjects } from "../hooks/use-projects";
-import { ProjectsHeader } from "./projects-header";
-import { ProjectsToolbar } from "./projects-toolbar";
-import { ProjectsStats } from "./projects-stats";
-import { ProjectsTable } from "./projects-table";
-import { ProjectsEmptyState } from "./projects-empty-state";
-import { ProjectsLoading } from "./projects-loading";
-import { ProjectDialog } from "./project-dialog";
+import { useProjects } from "./hooks/use-projects";
+import { ProjectsHeader } from "./components/projects-header";
+import { ProjectsToolbar } from "./components/projects-toolbar";
+import { ProjectsStats } from "./components/projects-stats";
+import { ProjectsTable } from "./components/projects-table";
+import { ProjectsEmptyState } from "./components/projects-empty-state";
+import { ProjectsLoading } from "./components/projects-loading";
+import { ProjectDialog } from "./components/project-dialog";
 import { PaginationControl } from "@/components/shared/pagination/pagination-control";
 
 export const ProjectsPageView: React.FC = () => {
