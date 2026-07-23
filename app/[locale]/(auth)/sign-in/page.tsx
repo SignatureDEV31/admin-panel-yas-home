@@ -9,6 +9,7 @@ import { handleSignIn } from "@/services/auth/sign-in.service";
 import { AuthRedirect } from "@/features/auth/auth-redirect/auth-redirect";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth/auth-context";
+import { useAppDispatch } from "@/store/store";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -40,37 +41,37 @@ export default function LoginPage() {
 
   return (
     <AuthRedirect>
-      <main className="relative w-full min-h-screen">
-        {/* Background Image - Only visible on desktop */}
-        <div className=" absolute inset-0 w-full h-full">
+      <main className="relative w-full min-h-screen overflow-hidden">
+        {/* Background Image covering full viewport */}
+        <div className="absolute inset-0 w-full h-full">
           <img
-            src="/images/log1.jpg"
+            src="/log1.jpg"
             alt="Login background"
             className="w-full h-full object-cover"
           />
-          {/* Overlay for better readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          {/* Smooth dark overlay for readability */}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" />
         </div>
 
         {/* Login Component - Centered on mobile, Right side on desktop */}
         <div className="relative z-10 flex items-center justify-center md:justify-end min-h-screen">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 m-4 md:m-0 md:mr-8 lg:mr-16 xl:mr-32">
+          <div className="w-full max-w-[420px] bg-white/90 backdrop-blur-xl border border-white/20 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] p-8 m-4 md:m-0 md:mr-12 lg:mr-24 xl:mr-36 animate-in fade-in slide-in-from-bottom-8 duration-700">
             {/* Logo Section */}
-            <div className="flex mb-3">
+            <div className="flex mb-4 justify-start">
               <img
-                src="./dark-yas-logo.svg"
-                alt="Logo"
-                className="h-10 w-auto"
+                src="/logo/dark-yas-logo.svg"
+                alt="Yas Home Logo"
+                className="h-12 w-auto transition-transform hover:scale-105 duration-300"
               />
             </div>
 
             {/* Header */}
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-1">
+            <div className="text-left mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1.5 tracking-tight font-sans">
                 Bienvenue
               </h2>
-              <p className="text-xs text-gray-600">
-                Connectez-vous à votre compte
+              <p className="text-xs text-gray-500 font-medium">
+                Connectez-vous à votre espace Yas Home
               </p>
             </div>
 
@@ -104,15 +105,15 @@ export default function LoginPage() {
                   <input
                     type="checkbox"
                     {...register("rememberMe")}
-                    className="w-3.5 h-3.5 text-main border-[#EFEFEF] rounded focus:ring-main/50"
+                    className="w-3.5 h-3.5 text-main border-[#EFEFEF] rounded focus:ring-main/50 cursor-pointer"
                   />
-                  <span className="text-xs text-gray-700">
+                  <span className="text-xs text-gray-600 font-medium select-none">
                     Se souvenir de moi
                   </span>
                 </label>
                 <a
                   href="/forgot-password"
-                  className="text-xs text-main hover:text-main/80 transition-colors"
+                  className="text-xs text-[#FF014F] hover:text-[#FF014F]/80 transition-colors font-medium"
                 >
                   Mot de passe oublié ?
                 </a>
@@ -121,20 +122,20 @@ export default function LoginPage() {
               {/* Login Button */}
               <Button
                 type="submit"
-                size="sm"
-                className="text-xs rounded-full"
+                size="default"
+                className="w-full h-10 text-xs rounded-full bg-[#151533] hover:bg-[#1a1a3e] text-white shadow-md hover:shadow-lg transition-all font-semibold cursor-pointer flex items-center justify-center gap-2"
                 disabled={loading}
               >
                 {loading ? "Connexion en cours..." : "Se connecter"}
               </Button>
 
               {/* Divider */}
-              <div className="relative my-4">
+              <div className="relative my-5">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-[#EFEFEF]"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-white text-gray-500">
+                  <span className="px-3 bg-white/0 text-gray-500 font-medium backdrop-blur-xs">
                     Ou continuer avec
                   </span>
                 </div>
@@ -143,20 +144,26 @@ export default function LoginPage() {
               {/* Google Login Button */}
               <Button
                 type="button"
-                size="sm"
-                className="text-xs rounded-full border border-[#EFEFEF] text-[#7C7C84] [&_svg]:scale-100"
+                size="default"
+                className="w-full h-10 text-xs rounded-full border border-gray-200 bg-white/80 hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 onClick={handleGoogleLogin}
               >
-                Google
+                <svg className="h-4 w-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.882-6.437-6.437 0-3.555 2.882-6.437 6.437-6.437 1.545 0 2.955.55 4.056 1.458l3.11-3.11C19.043 1.838 15.896 1 12.24 1 6.033 1 12.24s5.033 11.24 11.24 11.24c5.898 0 10.743-4.238 10.743-10.743 0-.648-.065-1.213-.178-1.742H12.24z"
+                  />
+                </svg>
+                Continuer avec Google
               </Button>
 
               {/* Sign Up Link */}
-              <div className="text-center mt-4">
-                <p className="text-xs text-gray-600">
+              <div className="text-center mt-6">
+                <p className="text-xs text-gray-500 font-medium">
                   Vous n'avez pas de compte ?{" "}
                   <a
                     href="/sign-up"
-                    className="text-main font-medium hover:text-main/80 transition-colors"
+                    className="text-[#FF014F] font-bold hover:text-[#FF014F]/85 transition-colors"
                   >
                     S'inscrire
                   </a>

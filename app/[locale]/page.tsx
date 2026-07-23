@@ -1,10 +1,10 @@
-"use client";
+import { redirect } from "@/i18n/navigation";
 
-import { LoadingScreen } from "@/components/shared/loading-screen/loading-screen";
+type PageProps = {
+  params: Promise<{ locale: string }>;
+};
 
-export default function Page() {
-
-  return (
-    <LoadingScreen message="test" />
-  );
-}
+export default async function Page({ params }: PageProps) {
+  const { locale } = await params;
+  redirect({ href: "/overview", locale });
+}

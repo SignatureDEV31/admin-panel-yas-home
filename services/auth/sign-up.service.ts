@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
-import { toast } from "sonner";
-import { SignUpFormData } from "../schemas/sign-up.schema";
+import toast from "react-hot-toast";
+import { SignUpFormData } from "@/features/auth/schemas/sign-up.schema";
 
 // sing up function **
 export const handleSignUp = async (

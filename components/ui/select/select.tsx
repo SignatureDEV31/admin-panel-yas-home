@@ -3,7 +3,7 @@
 import React, { forwardRef, useState, useRef, useEffect } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { FiChevronDown, FiCheck } from "react-icons/fi";
+import { ChevronDown, Check } from "lucide-react";
 
 // Select variants using class-variance-authority (matching Input)
 const selectVariants = cva(
@@ -238,7 +238,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             {...props}
           >
             <span className="truncate font-sans">{displayLabel}</span>
-            <FiChevronDown
+            <ChevronDown
               className={cn(
                 "w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ml-2",
                 isOpen && "rotate-180",
@@ -298,7 +298,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
                   >
                     <span>{option.label}</span>
                     {selectedValue === option.value && (
-                      <FiCheck className="w-4 h-4 text-main flex-shrink-0" />
+                      <Check className="w-4 h-4 text-main flex-shrink-0" />
                     )}
                   </button>
                 ))

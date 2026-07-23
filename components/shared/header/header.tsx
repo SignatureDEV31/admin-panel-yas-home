@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { Menu, Bell } from "lucide-react";
+import { Menu, Bell, LogOut } from "lucide-react";
 import { useSidebar } from "../../../contexts/sidebar/sidebar-context";
 import { useAuth } from "@/contexts/auth/auth-context";
 import { ModeToggle } from "./mode-toggle";
 
 export const Header = () => {
   const { toggleMobileOpen } = useSidebar();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 h-16 w-full border-b border-border/60 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8">
@@ -43,7 +43,7 @@ export const Header = () => {
 
         {/* User Name & Profile Avatar */}
         <div className="flex items-center gap-3 border-s ps-3 border-border/60">
-          <div className="h-9 w-9 rounded-full  text-black border font-semibold flex items-center justify-center shadow-xs">
+          <div className="h-9 w-9 rounded-full text-black border font-semibold flex items-center justify-center shadow-xs">
             {user?.fullName ? user.fullName[0].toUpperCase() : "A"}
           </div>
           <div className="hidden sm:flex flex-col text-end">
@@ -55,6 +55,16 @@ export const Header = () => {
             </span>
           </div>
         </div>
+
+        {/* Disconnection Button */}
+        <button
+          onClick={logout}
+          className="p-2 rounded-lg text-muted-foreground hover:bg-destructive/15 hover:text-destructive transition-colors cursor-pointer"
+          aria-label="Se déconnecter"
+          title="Se déconnecter"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
       </div>
     </header>
   );
