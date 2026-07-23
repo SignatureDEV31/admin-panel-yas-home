@@ -2,7 +2,7 @@
 "use client";
 
 import { Provider } from "react-redux";
-import { AuthProvider } from "@/contexts/auth-context";
+import { AuthProvider } from "@/contexts/auth/auth-context";
 import { store } from "@/store/store";
 
 export function Providers({ children }: { children: React.ReactNode }) {

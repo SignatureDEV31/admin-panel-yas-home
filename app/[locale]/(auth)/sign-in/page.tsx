@@ -8,7 +8,7 @@ import { SignInFormData, signInSchema } from "@/features/auth/schemas/sign-in.sc
 import { handleSignIn } from "@/services/auth/sign-in.service";
 import { AuthRedirect } from "@/features/auth/auth-redirect/auth-redirect";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth/auth-context";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Header } from "../shared/header/header";
 import { Sidebar } from "../shared/side-bar/sidebar";
-import { SidebarProvider } from "../shared/side-bar/content/sidebar-context";
+import { SidebarProvider } from "../../contexts/sidebar/sidebar-context";
 
 export const DashboardLayoutWrapper: React.FC<{
   children: React.ReactNode;

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth/auth-context";
 import { AuthRedirect } from "@/features/auth/auth-redirect/auth-redirect";
 import { SignUpFormData, signUpSchema } from "@/features/auth/schemas/sign-up.schema";
 import { handleSignUp } from "@/services/auth/sign-up.service";

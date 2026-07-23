@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Menu, Bell } from "lucide-react";
-import { useSidebar } from "../side-bar/content/sidebar-context";
-import { useAuth } from "@/contexts/auth-context";
+import { useSidebar } from "../../../contexts/sidebar/sidebar-context";
+import { useAuth } from "@/contexts/auth/auth-context";
 import { ModeToggle } from "./mode-toggle";
 
 export const Header = () => {

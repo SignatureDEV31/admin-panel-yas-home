@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { useSidebar } from "./sidebar-context";
+import { useSidebar } from "../../../../contexts/sidebar/sidebar-context";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { SidebarNavContent } from "./sidebar-nav-content";
+import Link from "next/link";
 
 export const SidebarDesktop = () => {
   const { theme } = useTheme();
@@ -46,29 +47,31 @@ export const SidebarDesktop = () => {
             isCollapsed && "mx-auto",
           )}
         >
-          {!isCollapsed ? (
-            <Image
-              src={
-                isDark
-                  ? "/logo/white-yas-logo.svg"
-                  : "/logo/dark-yas-logo.svg"
-              }
-              alt="Logo"
-              width={125}
-              height={125}
-            />
-          ) : (
-            <Image
-              src={
-                isDark
-                  ? "/logo/yas-home-logo-y-white.svg"
-                  : "/logo/yas-home-logo-y.svg"
-              }
-              alt="Logo"
-              width={40}
-              height={40}
-            />
-          )}
+          <Link href="/overview">
+            {!isCollapsed ? (
+              <Image
+                src={
+                  isDark
+                    ? "/logo/white-yas-logo.svg"
+                    : "/logo/dark-yas-logo.svg"
+                }
+                alt="Logo"
+                width={125}
+                height={125}
+              />
+            ) : (
+              <Image
+                src={
+                  isDark
+                    ? "/logo/yas-home-logo-y-white.svg"
+                    : "/logo/yas-home-logo-y.svg"
+                }
+                alt="Logo"
+                width={40}
+                height={40}
+              />
+            )}
+          </Link>
         </div>
       </div>
 

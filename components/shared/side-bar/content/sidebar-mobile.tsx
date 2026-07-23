@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSidebar } from "./sidebar-context";
+import { useSidebar } from "../../../../contexts/sidebar/sidebar-context";
 import { ModeToggle } from "../../header/mode-toggle";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";

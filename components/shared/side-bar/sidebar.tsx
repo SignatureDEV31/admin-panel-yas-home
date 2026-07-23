@@ -3,7 +3,7 @@
 import React from "react";
 import { SidebarMobile } from "./content/sidebar-mobile";
 import { SidebarDesktop } from "./content/sidebar-desktop";
-import { useSidebar } from "./content/sidebar-context";
+import { useSidebar } from "../../../contexts/sidebar/sidebar-context";
 import { cn } from "@/lib/utils";
 
 export const Sidebar = () => {
