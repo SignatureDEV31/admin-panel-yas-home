@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { paginationMetaSchema } from "./properties.schema";
 
 export interface PropertyUser {
   id?: string;
@@ -156,51 +157,40 @@ export function extractPaginatedResponse(
     metaSource = resData.data;
   }
 
-  let total = items.length;
-  if (typeof metaSource?.total === "number") { total = metaSource.total; }
-  else if (typeof resData?.total === "number") { total = resData.total; }
-  else if (typeof metaSource?.totalProperties === "number") { total = metaSource.totalProperties; }
-  else if (typeof resData?.totalProperties === "number") { total = resData.totalProperties; }
-  else if (typeof metaSource?.total_properties === "number") { total = metaSource.total_properties; }
-  else if (typeof resData?.total_properties === "number") { total = resData.total_properties; }
-  else if (typeof metaSource?.totalItems === "number") { total = metaSource.totalItems; }
-  else if (typeof resData?.totalItems === "number") { total = resData.totalItems; }
-  else if (typeof metaSource?.total_items === "number") { total = metaSource.total_items; }
-  else if (typeof resData?.total_items === "number") { total = resData.total_items; }
-  else if (typeof metaSource?.totalCount === "number") { total = metaSource.totalCount; }
-  else if (typeof resData?.totalCount === "number") { total = resData.totalCount; }
-  else if (typeof metaSource?.total_count === "number") { total = metaSource.total_count; }
-  else if (typeof resData?.total_count === "number") { total = resData.total_count; }
-  else if (typeof metaSource?.count === "number") { total = metaSource.count; }
-  else if (typeof resData?.count === "number") { total = resData.count; }
-  else if (typeof metaSource?.meta?.total === "number") { total = metaSource.meta.total; }
-  else if (typeof resData?.meta?.total === "number") { total = resData.meta.total; }
-  else if (typeof metaSource?.meta?.totalItems === "number") { total = metaSource.meta.totalItems; }
-  else if (typeof resData?.meta?.totalItems === "number") { total = resData.meta.totalItems; }
-  else if (typeof metaSource?.pagination?.total === "number") { total = metaSource.pagination.total; }
-  else if (typeof resData?.pagination?.total === "number") { total = resData.pagination.total; }
+  // Parse the candidates using the Zod schema safely
+  const parsedMeta = paginationMetaSchema.safeParse(metaSource).data || {};
+  const parsedRoot = paginationMetaSchema.safeParse(resData).data || {};
 
-  let page = defaultPage;
-  if (typeof metaSource?.page === "number") page = metaSource.page;
-  else if (typeof resData?.page === "number") page = resData.page;
-  else if (typeof metaSource?.currentPage === "number") page = metaSource.currentPage;
-  else if (typeof resData?.currentPage === "number") page = resData.currentPage;
-  else if (typeof metaSource?.meta?.page === "number") page = metaSource.meta.page;
-  else if (typeof resData?.meta?.page === "number") page = resData.meta.page;
+  // Extract total using prioritized fallback checks
+  const total = parsedMeta.total ?? parsedRoot.total
+    ?? parsedMeta.totalProperties ?? parsedRoot.totalProperties
+    ?? parsedMeta.total_properties ?? parsedRoot.total_properties
+    ?? parsedMeta.totalItems ?? parsedRoot.totalItems
+    ?? parsedMeta.total_items ?? parsedRoot.total_items
+    ?? parsedMeta.totalCount ?? parsedRoot.totalCount
+    ?? parsedMeta.total_count ?? parsedRoot.total_count
+    ?? parsedMeta.count ?? parsedRoot.count
+    ?? parsedMeta.meta?.total ?? parsedRoot.meta?.total
+    ?? parsedMeta.meta?.totalItems ?? parsedRoot.meta?.totalItems
+    ?? parsedMeta.pagination?.total ?? parsedRoot.pagination?.total
+    ?? items.length;
 
-  let limit = defaultLimit;
-  if (typeof metaSource?.limit === "number") limit = metaSource.limit;
-  else if (typeof resData?.limit === "number") limit = resData.limit;
-  else if (typeof metaSource?.perPage === "number") limit = metaSource.perPage;
-  else if (typeof resData?.perPage === "number") limit = resData.perPage;
-  else if (typeof metaSource?.meta?.limit === "number") limit = resData.meta.limit;
-  else if (typeof resData?.meta?.limit === "number") limit = resData.meta.limit;
+  // Extract page
+  const page = parsedMeta.page ?? parsedRoot.page
+    ?? parsedMeta.currentPage ?? parsedRoot.currentPage
+    ?? parsedMeta.meta?.page ?? parsedRoot.meta?.page
+    ?? defaultPage;
 
-  let totalPages = Math.ceil(total / (limit || 1)) || 1;
-  if (typeof metaSource?.totalPages === "number") totalPages = metaSource.totalPages;
-  else if (typeof resData?.totalPages === "number") totalPages = resData.totalPages;
-  else if (typeof metaSource?.meta?.totalPages === "number") totalPages = metaSource.meta.totalPages;
-  else if (typeof resData?.meta?.totalPages === "number") totalPages = resData.meta.totalPages;
+  // Extract limit
+  const limit = parsedMeta.limit ?? parsedRoot.limit
+    ?? parsedMeta.perPage ?? parsedRoot.perPage
+    ?? parsedMeta.meta?.limit ?? parsedRoot.meta?.limit
+    ?? defaultLimit;
+
+  // Extract totalPages
+  const totalPages = parsedMeta.totalPages ?? parsedRoot.totalPages
+    ?? parsedMeta.meta?.totalPages ?? parsedRoot.meta?.totalPages
+    ?? (Math.ceil(total / (limit || 1)) || 1);
 
   return {
     data: items,
