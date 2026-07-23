@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
 import { useOverview } from "../hooks/use-overview";
 
-import { OverviewKpiCards } from "./overview-kpi-cards";
+import { OverviewCoreCards } from "./overview-core-cards";
+import { OverviewPlatformStatus } from "./overview-platform-status";
 import { OverviewCharts } from "./overview-charts";
 import { OverviewRecentActivity } from "./overview-recent-activity";
+import { OverviewRecentActivitiesList } from "./overview-recent-activities-list";
 
 import {
   formatNumber,
@@ -36,6 +38,25 @@ export function OverviewPageView() {
     visitsThisMonthData,
     todayVisitsData,
   } = useOverview();
+
+  // Mock data for R2 endpoints and extra metrics that are not yet implemented on the backend API.
+  const mockMetrics = React.useMemo(() => ({
+    totalAgents: 142,
+    totalDevelopers: 85,
+    pendingPublications: 28,
+    publishedListings: 1240,
+    pendingPayments: 12,
+    userAppUsers: 3450,
+    userWebsiteUsers: 8900,
+    generatedLeads: 412,
+    recentActivities: [
+      { id: "1", type: "property", message: "New property 'Villa in Oran' submitted for approval", time: "5 minutes ago", status: "pending" },
+      { id: "2", type: "payment", message: "Payment confirmation pending for Promoter 'Yas Construction'", time: "1 hour ago", status: "pending" },
+      { id: "3", type: "user", message: "New Agent registration: Ahmed Mansouri", time: "2 hours ago", status: "success" },
+      { id: "4", type: "lead", message: "Lead generated for 'Appartement Alger Centre'", time: "3 hours ago", status: "success" },
+      { id: "5", type: "property", message: "Property 'Studio Hydra' published successfully", time: "1 day ago", status: "success" }
+    ]
+  }), []);
 
   if (error) {
     return (
@@ -97,11 +118,16 @@ export function OverviewPageView() {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">{pageTitle}</h1>
       </div>
 
-      <OverviewKpiCards
+      <OverviewCoreCards
         stats={data}
         sumTotalUsers={sumTotalUsers}
         visitsTimeframe={visitsTimeframe}
         setVisitsTimeframe={setVisitsTimeframe}
+        formatNumber={formatNumber}
+      />
+
+      <OverviewPlatformStatus
+        mockMetrics={mockMetrics}
         formatNumber={formatNumber}
       />
 
@@ -117,11 +143,21 @@ export function OverviewPageView() {
         formatNumber={formatNumber}
       />
 
-      <OverviewRecentActivity
-        recentPromoters={data.userStats?.promoters?.recent || []}
-        getInitials={getInitials}
-        formatDate={formatDate}
-      />
+      {/* Two Column Layout: Promoters Table and Real-time Activity Timeline */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <OverviewRecentActivity
+            recentPromoters={data.userStats?.promoters?.recent || []}
+            getInitials={getInitials}
+            formatDate={formatDate}
+          />
+        </div>
+        <div>
+          <OverviewRecentActivitiesList
+            activities={mockMetrics.recentActivities}
+          />
+        </div>
+      </div>
     </div>
   );
 }
