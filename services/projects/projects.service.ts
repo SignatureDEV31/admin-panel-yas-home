@@ -145,11 +145,11 @@ export async function deleteProject(id: string): Promise<void> {
 }
 
 /**
- * Upload images to project by ID via POST /projects/{id}/upload-images
+ * Upload images to project by ID via POST /r2/{id}/multiple/upload-images
  */
 export async function uploadProjectImages(id: string, formData: FormData): Promise<any> {
   try {
-    const response = await api.post(`/projects/${id}/upload-images`, formData, {
+    const response = await api.post(`/r2/${id}/multiple/upload-images`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;

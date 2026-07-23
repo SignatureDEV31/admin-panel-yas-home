@@ -314,11 +314,11 @@ export async function deleteProperty(id: string): Promise<void> {
 }
 
 /**
- * Uploads images to a property via POST /properties/{id}/upload-images
+ * Uploads images to a property via POST /r2/{id}/multiple/upload-images
  */
 export async function uploadPropertyImages(id: string, formData: FormData): Promise<any> {
   try {
-    const response = await api.post(`/properties/${id}/upload-images`, formData, {
+    const response = await api.post(`/r2/${id}/multiple/upload-images`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
