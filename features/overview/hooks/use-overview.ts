@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { getAdminStats } from "@/services/admin/admin.service";
-import { AdminStats } from "@/services/types/admin.types";
+import {
+  getDashboardStats,
+  getGrowthTrends,
+  getBreakdowns,
+  getRecentActivity,
+} from "@/services/admin/admin.service";
+import {
+  AdminDashboardStats,
+  BreakdownsResponse,
+  GrowthTrendsResponse,
+  RecentActivityResponse,
+  StatsPeriod,
+} from "@/services/types/admin.types";
 import {
   CHART_COLORS,
   normalizeCityName,
@@ -13,68 +24,119 @@ export function useOverview() {
   const t = useTranslations();
   const pageTitle = t ? t("overview") : "Overview";
 
-  const [data, setData] = useState<AdminStats | null>(null);
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [growthTrends, setGrowthTrends] = useState<GrowthTrendsResponse | null>(null);
+  const [breakdowns, setBreakdowns] = useState<BreakdownsResponse | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityResponse | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [visitsTimeframe, setVisitsTimeframe] = useState<'today' | 'week' | 'month'>('month');
+  const [visitsTimeframe, setVisitsTimeframe] = useState<"today" | "week" | "month">("month");
+  const [growthPeriod, setGrowthPeriod] = useState<StatsPeriod>(StatsPeriod.LAST_30_DAYS);
 
-  const fetchStats = async () => {
+  const fetchAllDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const stats = await getAdminStats();
-      setData(stats);
+      const [statsData, trendsData, breakdownsData, activityData] = await Promise.all([
+        getDashboardStats().catch((e) => {
+          console.warn("Error loading dashboard stats:", e);
+          return null;
+        }),
+        getGrowthTrends({ period: growthPeriod }).catch((e) => {
+          console.warn("Error loading growth trends:", e);
+          return null;
+        }),
+        getBreakdowns().catch((e) => {
+          console.warn("Error loading breakdowns:", e);
+          return null;
+        }),
+        getRecentActivity().catch((e) => {
+          console.warn("Error loading recent activity:", e);
+          return null;
+        }),
+      ]);
+
+      if (statsData) setStats(statsData);
+      if (trendsData) setGrowthTrends(trendsData);
+      if (breakdownsData) setBreakdowns(breakdownsData);
+      if (activityData) setRecentActivity(activityData);
+
+      if (!statsData && !trendsData && !breakdownsData && !activityData) {
+        throw new Error("Unable to connect to backend admin services.");
+      }
     } catch (err: any) {
-      console.error("Failed to load admin stats:", err);
-      const errorDetail = err.message || "Unknown error";
-      setError(`Failed to fetch admin dashboard stats from server. Details: ${errorDetail}`);
+      console.error("Failed to load dashboard data:", err);
+      const errorDetail = err.message || "Network error";
+      setError(`Failed to fetch admin dashboard data. Details: ${errorDetail}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [growthPeriod]);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    fetchAllDashboardData();
+  }, [fetchAllDashboardData]);
 
+  // 1. Total sum of users
   const sumTotalUsers = useMemo(() => {
-    if (!data?.userStats?.byRole) return 0;
-    return data.userStats.byRole.reduce((sum, item) => sum + Number(item.count || 0), 0);
-  }, [data]);
+    if (stats?.users?.total !== undefined) return stats.users.total;
+    if (breakdowns?.usersByRole) {
+      return breakdowns.usersByRole.reduce((sum, item) => sum + Number(item.count || 0), 0);
+    }
+    return 0;
+  }, [stats, breakdowns]);
 
+  // 2. Monthly / Daily User Growth from GrowthTrends
   const monthlyUsersData = useMemo(() => {
-    if (!data?.monthlyUsers) return [];
-    return data.monthlyUsers.map((item) => {
-      let monthName = "Unknown";
+    if (!growthTrends?.userRegistrations) return [];
+    return growthTrends.userRegistrations.map((item) => {
+      let formattedDate = item.date;
       try {
-        const date = new Date(item.month);
-        monthName = new Intl.DateTimeFormat("en-US", { month: "short" }).format(date);
+        const dateObj = new Date(item.date);
+        if (!isNaN(dateObj.getTime())) {
+          formattedDate = new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+          }).format(dateObj);
+        }
       } catch {}
       return {
-        Month: monthName,
+        Month: formattedDate,
         "Number of users": Number(item.count || 0),
       };
     });
-  }, [data]);
+  }, [growthTrends]);
 
+  // 3. Property Distribution (Sale vs Rent)
   const propertyDistribution = useMemo(() => {
-    if (!data?.propertiesByType) return [];
+    if (!breakdowns?.propertiesByType) return [];
 
-    return data.propertiesByType
+    return breakdowns.propertiesByType
       .map((item) => {
         const typeLabel =
-          item.type === "VENTE" ? "Sale" : item.type === "LOCATION" ? "Rent" : item.type;
+          item.propertyType === "VENTE"
+            ? "Sale"
+            : item.propertyType === "LOCATION"
+            ? "Rent"
+            : item.propertyType || "Other";
         return {
           name: typeLabel,
           value: Number(item.count || 0),
-          fill: item.type === "VENTE" ? CHART_COLORS.yashomePink : CHART_COLORS.main,
+          fill:
+            item.propertyType === "VENTE"
+              ? CHART_COLORS.yashomePink
+              : item.propertyType === "LOCATION"
+              ? CHART_COLORS.main
+              : CHART_COLORS.indigo,
         };
       })
-      .filter((item) => ["sale", "rent"].includes(item.name.toLowerCase()));
-  }, [data]);
+      .filter((item) => item.value > 0);
+  }, [breakdowns]);
 
+  // 4. User Roles Distribution
   const userRolesData = useMemo(() => {
-    if (!data?.userStats?.byRole) return [];
+    if (!breakdowns?.usersByRole) return [];
 
     const roleMapping: Record<string, { label: string; fill: string }> = {
       regular: { label: "Regular", fill: CHART_COLORS.indigo },
@@ -84,10 +146,13 @@ export function useOverview() {
       unknown: { label: "Unknown", fill: CHART_COLORS.slate },
     };
 
-    return data.userStats.byRole
+    return breakdowns.usersByRole
       .map((item) => {
         const roleKey = (item.role || "").toLowerCase().trim();
-        const config = roleMapping[roleKey] || { label: item.role, fill: CHART_COLORS.slate };
+        const config = roleMapping[roleKey] || {
+          label: item.role || "User",
+          fill: CHART_COLORS.slate,
+        };
         return {
           name: config.label,
           value: Number(item.count || 0),
@@ -96,48 +161,57 @@ export function useOverview() {
       })
       .filter((item) => item.value > 0)
       .sort((a, b) => b.value - a.value);
-  }, [data]);
+  }, [breakdowns]);
 
+  // 5. Top Wilayas / Cities
   const topWilayas = useMemo(() => {
-    if (!data?.propertiesByWilaya) return [];
+    if (!breakdowns?.topWilayas?.properties) return [];
 
     const cityCounts: Record<string, number> = {};
-    data.propertiesByWilaya.forEach((item) => {
-      if (!item || !item.city || item.city.trim() === "") return;
-      const normalized = normalizeCityName(item.city);
-      cityCounts[normalized] = (cityCounts[normalized] || 0) + Number(item.count || 0);
+    breakdowns.topWilayas.properties.forEach((item) => {
+      if (!item || !item.state || item.state.trim() === "") return;
+      const normalized = normalizeCityName(item.state);
+      cityCounts[normalized] =
+        (cityCounts[normalized] || 0) + Number(item.count || 0);
     });
 
     return Object.entries(cityCounts)
       .map(([cityName, count]) => ({ name: cityName, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  }, [data]);
+  }, [breakdowns]);
 
+  // 6. Traffic / Page Visits Trends
   const visitsThisMonthData = useMemo(() => {
-    if (!data?.visitStats?.thisMonthByDay) return [];
-    return data.visitStats.thisMonthByDay.map((item) => ({
-      Day: String(item.day),
-      Visits: item.count,
+    if (!growthTrends?.pageVisits) return [];
+    return growthTrends.pageVisits.map((item) => ({
+      Day: item.date,
+      Visits: Number(item.count || 0),
     }));
-  }, [data]);
+  }, [growthTrends]);
 
   const todayVisitsData = useMemo(() => {
-    if (!data?.visitStats?.todayByHour) return [];
-    return data.visitStats.todayByHour.map((item) => ({
-      Hour: `${String(item.hour).padStart(2, "0")}:00`,
-      Visits: item.count,
+    if (!growthTrends?.pageVisits) return [];
+    return growthTrends.pageVisits.slice(-24).map((item) => ({
+      Hour: item.date,
+      Visits: Number(item.count || 0),
     }));
-  }, [data]);
+  }, [growthTrends]);
 
   return {
     pageTitle,
-    data,
+    data: stats,
+    stats,
+    growthTrends,
+    breakdowns,
+    recentActivity,
     loading,
     error,
     visitsTimeframe,
     setVisitsTimeframe,
-    fetchStats,
+    growthPeriod,
+    setGrowthPeriod,
+    fetchStats: fetchAllDashboardData,
     sumTotalUsers,
     monthlyUsersData,
     propertyDistribution,

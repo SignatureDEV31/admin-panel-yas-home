@@ -1,13 +1,13 @@
 import React from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Users, TrendingUp, Building2, Briefcase } from "lucide-react";
-import { AdminStats } from "@/services/types/admin.types";
+import { AdminDashboardStats } from "@/services/types/admin.types";
 
 interface OverviewCoreCardsProps {
-  stats: AdminStats;
+  stats: AdminDashboardStats;
   sumTotalUsers: number;
-  visitsTimeframe: 'today' | 'week' | 'month';
-  setVisitsTimeframe: (timeframe: 'today' | 'week' | 'month') => void;
+  visitsTimeframe: "today" | "week" | "month";
+  setVisitsTimeframe: (timeframe: "today" | "week" | "month") => void;
   formatNumber: (num: number) => string;
 }
 
@@ -18,12 +18,10 @@ export const OverviewCoreCards: React.FC<OverviewCoreCardsProps> = ({
   setVisitsTimeframe,
   formatNumber,
 }) => {
-  const currentVisits =
-    visitsTimeframe === 'today'
-      ? stats.visitStats?.today || 0
-      : visitsTimeframe === 'week'
-      ? stats.visitStats?.thisWeek || 0
-      : stats.visitStats?.thisMonth || 0;
+  const currentVisits = stats.analytics?.totalVisits || 0;
+  const totalProperties = stats.properties?.total ?? stats.properties?.active ?? 0;
+  const totalProjects = stats.projects?.total ?? 0;
+  const totalUsers = stats.users?.total ?? sumTotalUsers ?? 0;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -37,10 +35,10 @@ export const OverviewCoreCards: React.FC<OverviewCoreCardsProps> = ({
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {formatNumber(sumTotalUsers)}
+            {formatNumber(totalUsers)}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1 font-medium">
-            Sum of all registered platform roles
+            {stats.users?.verified ? `${stats.users.verified} verified` : "Registered platform accounts"}
           </p>
         </CardContent>
       </Card>
@@ -61,36 +59,11 @@ export const OverviewCoreCards: React.FC<OverviewCoreCardsProps> = ({
           </div>
 
           <div className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold">
-            <button
-              onClick={() => setVisitsTimeframe('today')}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
-                visitsTimeframe === 'today'
-                  ? 'bg-main text-white'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              Today
-            </button>
-            <button
-              onClick={() => setVisitsTimeframe('week')}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
-                visitsTimeframe === 'week'
-                  ? 'bg-main text-white'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              Week
-            </button>
-            <button
-              onClick={() => setVisitsTimeframe('month')}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
-                visitsTimeframe === 'month'
-                  ? 'bg-main text-white'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              Month
-            </button>
+            <span className="text-xs text-muted-foreground">
+              {stats.analytics?.uniqueVisitors
+                ? `${formatNumber(stats.analytics.uniqueVisitors)} unique visitors`
+                : "Aggregated page visits"}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -105,10 +78,10 @@ export const OverviewCoreCards: React.FC<OverviewCoreCardsProps> = ({
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {formatNumber(stats.properties || 0)}
+            {formatNumber(totalProperties)}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1 font-medium">
-            Active real estate listings on portal
+            {stats.properties?.available ? `${stats.properties.available} available listings` : "Active listings on portal"}
           </p>
         </CardContent>
       </Card>
@@ -123,10 +96,10 @@ export const OverviewCoreCards: React.FC<OverviewCoreCardsProps> = ({
         </CardHeader>
         <CardContent className="mt-1">
           <span className="text-4xl font-extrabold tracking-tight text-foreground">
-            {formatNumber(stats.projects || 0)}
+            {formatNumber(totalProjects)}
           </span>
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1 font-medium">
-            Promoter development complexes
+            {stats.projects?.published ? `${stats.projects.published} published developments` : "Promoter development complexes"}
           </p>
         </CardContent>
       </Card>

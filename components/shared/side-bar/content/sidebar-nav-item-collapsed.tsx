@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useSidebar } from "../../../../contexts/sidebar/sidebar-context";
 import { cn } from "@/lib/utils";
+import { Lock } from "lucide-react";
 import { SidebarItem } from "../data/types";
 
 interface SidebarNavItemCollapsedProps {
@@ -64,6 +65,21 @@ export const SidebarNavItemCollapsed = ({
           <div className="space-y-0.5">
             {item.children!.map((child) => {
               const isChildActive = pathname === child.href;
+              const isDisabled = !!child.disabled;
+
+              if (isDisabled) {
+                return (
+                  <div
+                    key={child.href}
+                    className="flex items-center justify-between px-2.5 py-1.5 text-sm rounded-md text-muted-foreground/40 cursor-not-allowed select-none"
+                    title="Disabled"
+                  >
+                    <span className="truncate">{t(`menu.${child.labelKey}`)}</span>
+                    <Lock className="h-3 w-3 opacity-40 shrink-0 ml-1" />
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={child.href}

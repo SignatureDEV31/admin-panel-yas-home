@@ -1,22 +1,28 @@
 import { api } from "@/lib/axios";
-import { paginationMetaSchema } from "./properties.schema";
+import { AdminBulkActionDto, PaginatedResult } from "../types/admin.types";
 
 export interface PropertyUser {
   id?: string;
   fullName?: string;
   email?: string;
   phoneNumber?: string;
+  profile?: {
+    raison_social?: string;
+    city?: string;
+    state?: string;
+    certify?: boolean;
+  };
 }
 
 export interface PropertyImageItem {
-  id: string;
+  id: string | number;
   url: string;
 }
 
 export interface Property {
-  id: string;
+  id: number | string;
   _id?: string;
-  title: string;
+  title?: string;
   propertyName?: string;
   description?: string;
   price?: number | string;
@@ -49,230 +55,144 @@ export interface Property {
   images?: (string | PropertyImageItem)[];
   mainImage?: string | PropertyImageItem;
   typeVendeur?: string;
+  vues?: number;
+  deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
   user?: PropertyUser;
+  project?: {
+    id: number;
+    title?: string;
+  };
+  amenities?: any[];
+  featuredProperties?: any;
 }
 
-export interface UnifiedSearchQueryParams {
-  limit?: number;
+export interface PropertyQueryParams {
   page?: number;
-  searchIn?: "all" | "properties" | "projects" | string;
-  sortOrder?: "ASC" | "DESC" | string;
-  sortBy?: "price" | "surface" | "createdAt" | "vues" | string;
-  createdBefore?: string;
-  createdAfter?: string;
-  typeVendeur?: string | string[];
-  financementPrixMax?: number | string;
-  financementPrixMin?: number | string;
-  financementType?: string;
-  projectSousType?: string;
-  projectType?: string;
-  projectStatus?: string | string[];
-  bedsMax?: number | string;
-  bedsMin?: number | string;
-  surfaceMax?: number | string;
-  surfaceMin?: number | string;
-  priceMax?: number | string;
-  priceMin?: number | string;
-  category?: string | string[];
-  propertyType?: string | string[];
-  country?: string;
+  limit?: number;
+  search?: string;
+  propertyType?: string;
+  pricingType?: string;
+  availableStatus?: boolean;
+  withDeleted?: boolean;
+  onlyDeleted?: boolean;
   city?: string;
   state?: string;
-  keyword?: string;
-}
-
-export type PropertyQueryParams = UnifiedSearchQueryParams;
-
-export interface PropertiesResponse {
-  data?: Property[];
-  properties?: Property[];
-  items?: Property[];
-  results?: Property[];
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  projectId?: number;
+  userId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc" | "ASC" | "DESC";
 }
 
 export interface CreatePropertyPayload {
-  title: string;
+  propertyName?: string;
+  title?: string;
   description?: string;
-  price: number | string;
-  surface: number | string;
-  propertyType: "VENTE" | "LOCATION" | string;
-  category: string;
-  state: string;
+  price?: number | string;
+  surface?: number | string;
+  propertyType?: "VENTE" | "LOCATION" | string;
+  category?: string;
+  state?: string;
   city?: string;
   address?: string;
+  adress?: string;
+  country?: string;
+  beds?: number;
+  availableStatus?: boolean;
+  pricingType?: string;
+  projectId?: number;
 }
 
 export type UpdatePropertyPayload = Partial<CreatePropertyPayload>;
 
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-function extractArrayFromResponse(resData: any): Property[] {
-  if (!resData) return [];
-  if (Array.isArray(resData)) return resData;
-
-  if (Array.isArray(resData.properties)) return resData.properties;
-  if (Array.isArray(resData.projects)) return resData.projects;
-  if (Array.isArray(resData.data)) return resData.data;
-  if (Array.isArray(resData.items)) return resData.items;
-  if (Array.isArray(resData.results)) return resData.results;
-
-  if (resData.properties && typeof resData.properties === "object") {
-    const nestedProps = extractArrayFromResponse(resData.properties);
-    if (nestedProps.length > 0) return nestedProps;
-  }
-  if (resData.data && typeof resData.data === "object") {
-    const nestedData = extractArrayFromResponse(resData.data);
-    if (nestedData.length > 0) return nestedData;
-  }
-
-  return [];
-}
-
-export function extractPaginatedResponse(
-  resData: any,
-  defaultPage = 1,
-  defaultLimit = 12
-): PaginatedResult<Property> {
-  const items = extractArrayFromResponse(resData);
-
-  // Check nested container objects if root doesn't have explicit metadata
-  let metaSource = resData;
-  if (resData?.properties && typeof resData.properties === "object" && !Array.isArray(resData.properties)) {
-    metaSource = resData.properties;
-  } else if (resData?.projects && typeof resData.projects === "object" && !Array.isArray(resData.projects)) {
-    metaSource = resData.projects;
-  } else if (resData?.data && typeof resData.data === "object" && !Array.isArray(resData.data)) {
-    metaSource = resData.data;
-  }
-
-  // Parse the candidates using the Zod schema safely
-  const parsedMeta = paginationMetaSchema.safeParse(metaSource).data || {};
-  const parsedRoot = paginationMetaSchema.safeParse(resData).data || {};
-
-  // Extract total using prioritized fallback checks
-  const total = parsedMeta.total ?? parsedRoot.total
-    ?? parsedMeta.totalProperties ?? parsedRoot.totalProperties
-    ?? parsedMeta.total_properties ?? parsedRoot.total_properties
-    ?? parsedMeta.totalItems ?? parsedRoot.totalItems
-    ?? parsedMeta.total_items ?? parsedRoot.total_items
-    ?? parsedMeta.totalCount ?? parsedRoot.totalCount
-    ?? parsedMeta.total_count ?? parsedRoot.total_count
-    ?? parsedMeta.count ?? parsedRoot.count
-    ?? parsedMeta.meta?.total ?? parsedRoot.meta?.total
-    ?? parsedMeta.meta?.totalItems ?? parsedRoot.meta?.totalItems
-    ?? parsedMeta.pagination?.total ?? parsedRoot.pagination?.total
-    ?? items.length;
-
-  // Extract page
-  const page = parsedMeta.page ?? parsedRoot.page
-    ?? parsedMeta.currentPage ?? parsedRoot.currentPage
-    ?? parsedMeta.meta?.page ?? parsedRoot.meta?.page
-    ?? defaultPage;
-
-  // Extract limit
-  const limit = parsedMeta.limit ?? parsedRoot.limit
-    ?? parsedMeta.perPage ?? parsedRoot.perPage
-    ?? parsedMeta.meta?.limit ?? parsedRoot.meta?.limit
-    ?? defaultLimit;
-
-  // Extract totalPages
-  const totalPages = parsedMeta.totalPages ?? parsedRoot.totalPages
-    ?? parsedMeta.meta?.totalPages ?? parsedRoot.meta?.totalPages
-    ?? (Math.ceil(total / (limit || 1)) || 1);
-
-  return {
-    data: items,
-    total,
-    page,
-    limit,
-    totalPages,
-  };
-}
-
 /**
- * Fetches unified search results with pagination metadata via GET /home/unified-search
+ * Fetch paginated properties from backend admin endpoint: GET /admin/properties
  */
-export async function getUnifiedSearchPaginated(
-  params?: UnifiedSearchQueryParams
+export async function getProperties(
+  params?: PropertyQueryParams
 ): Promise<PaginatedResult<Property>> {
+  const page = params?.page || 1;
+  const limit = params?.limit || 10;
+
   try {
-    const response = await api.get<any>("/home/unified-search", {
-      params,
+    const response = await api.get<any>("/admin/properties", {
+      params: {
+        page,
+        limit,
+        search: params?.search || undefined,
+        propertyType:
+          params?.propertyType && params.propertyType !== "all"
+            ? params.propertyType
+            : undefined,
+        pricingType:
+          params?.pricingType && params.pricingType !== "all"
+            ? params.pricingType
+            : undefined,
+        availableStatus: params?.availableStatus,
+        withDeleted: params?.withDeleted,
+        onlyDeleted: params?.onlyDeleted,
+        city: params?.city,
+        state: params?.state,
+        minPrice: params?.minPrice,
+        maxPrice: params?.maxPrice,
+        projectId: params?.projectId,
+        userId: params?.userId,
+        sortBy: params?.sortBy || "createdAt",
+        sortOrder: params?.sortOrder ? params.sortOrder.toUpperCase() : "DESC",
+      },
     });
-    return extractPaginatedResponse(response.data, params?.page || 1, params?.limit || 12);
-  } catch (error) {
-    console.error("Error performing unified search via /home/unified-search:", error);
+
+    const data = response.data;
+    if (data && Array.isArray(data.data) && data.meta) {
+      return {
+        data: data.data,
+        meta: data.meta,
+      };
+    }
+
+    if (Array.isArray(data)) {
+      return {
+        data,
+        meta: {
+          totalItems: data.length,
+          itemCount: data.length,
+          itemsPerPage: limit,
+          totalPages: Math.ceil(data.length / limit) || 1,
+          currentPage: page,
+        },
+      };
+    }
+
+    return {
+      data: [],
+      meta: {
+        totalItems: 0,
+        itemCount: 0,
+        itemsPerPage: limit,
+        totalPages: 1,
+        currentPage: page,
+      },
+    };
+  } catch (error: any) {
+    console.error("Error fetching properties via /admin/properties:", error);
     throw error;
   }
 }
 
 /**
- * Fetches unified search results for properties & projects via GET /home/unified-search
+ * Fetches a single property by ID from GET /admin/properties/{id}
  */
-export async function getUnifiedSearch(params?: UnifiedSearchQueryParams): Promise<Property[]> {
-  const paginated = await getUnifiedSearchPaginated(params);
-  return paginated.data;
-}
-
-/**
- * Fetches properties via GET /home/unified-search
- */
-export async function getProperties(params?: PropertyQueryParams): Promise<Property[]> {
-  return getUnifiedSearch({ searchIn: "properties", ...params });
-}
-
-/**
- * Fetches a single property by ID from GET /properties/{id}
- */
-export async function getPropertyById(id: string): Promise<Property> {
+export async function getPropertyById(id: string | number): Promise<Property> {
   try {
-    const response = await api.get<any>(`/properties/${id}`);
-    const resData = response.data;
-
-    let item = resData;
-    if (resData && resData.property) {
-      item = {
-        ...resData,
-        ...resData.property,
-        id: resData.property.id || resData.id || id,
-        rawParent: resData,
-      };
-    } else if (resData && resData.data) {
-      item = resData.data;
-    }
-
-    if (item) {
-      return item;
-    }
-  } catch (error: any) {
-    if (error?.response?.status === 401) {
-      throw error;
-    }
-    console.warn(`GET /properties/${id} failed, attempting search fallback for ID ${id}:`, error);
+    const response = await api.get<Property>(`/admin/properties/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching property ${id} via /admin/properties/${id}:`, error);
+    throw error;
   }
-
-  // Fallback: search unified search for the property by ID
-  try {
-    const all = await getProperties({ limit: 100 });
-    const match = all.find((p) => String(p.id) === String(id) || String(p._id) === String(id));
-    if (match) return match;
-  } catch (err) {
-    console.error(`Fallback search for property ${id} failed:`, err);
-  }
-
-  throw new Error(`Property with ID #${id} could not be retrieved from the server.`);
 }
 
 /**
@@ -289,11 +209,14 @@ export async function createProperty(payload: CreatePropertyPayload): Promise<Pr
 }
 
 /**
- * Updates an existing property via PATCH /properties/{id}
+ * Updates an existing property via PATCH /admin/properties/{id}
  */
-export async function updateProperty(id: string, payload: UpdatePropertyPayload): Promise<Property> {
+export async function updateProperty(
+  id: string | number,
+  payload: UpdatePropertyPayload
+): Promise<Property> {
   try {
-    const response = await api.patch<Property>(`/properties/${id}`, payload);
+    const response = await api.patch<Property>(`/admin/properties/${id}`, payload);
     return response.data;
   } catch (error) {
     console.error(`Error updating property ${id}:`, error);
@@ -302,11 +225,12 @@ export async function updateProperty(id: string, payload: UpdatePropertyPayload)
 }
 
 /**
- * Deletes a property via DELETE /properties/{id}
+ * Soft-deletes a property via DELETE /admin/properties/{id}
  */
-export async function deleteProperty(id: string): Promise<void> {
+export async function deleteProperty(id: string | number): Promise<{ message: string }> {
   try {
-    await api.delete(`/properties/${id}`);
+    const response = await api.delete(`/admin/properties/${id}`);
+    return response.data;
   } catch (error) {
     console.error(`Error deleting property ${id}:`, error);
     throw error;
@@ -314,9 +238,40 @@ export async function deleteProperty(id: string): Promise<void> {
 }
 
 /**
+ * Restores a soft-deleted property via PATCH /admin/properties/{id}/restore
+ */
+export async function restoreProperty(id: string | number): Promise<{ message: string }> {
+  try {
+    const response = await api.patch(`/admin/properties/${id}/restore`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error restoring property ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Execute bulk action on properties (delete, restore, set_available, set_unavailable)
+ */
+export async function bulkPropertyAction(
+  dto: AdminBulkActionDto
+): Promise<{ message: string; affected: number }> {
+  try {
+    const response = await api.post("/admin/properties/bulk", dto);
+    return response.data;
+  } catch (error) {
+    console.error("Error executing bulk property action:", error);
+    throw error;
+  }
+}
+
+/**
  * Uploads images to a property via POST /r2/{id}/multiple/upload-images
  */
-export async function uploadPropertyImages(id: string, formData: FormData): Promise<any> {
+export async function uploadPropertyImages(
+  id: string | number,
+  formData: FormData
+): Promise<any> {
   try {
     const response = await api.post(`/r2/${id}/multiple/upload-images`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -331,7 +286,7 @@ export async function uploadPropertyImages(id: string, formData: FormData): Prom
 /**
  * Deletes a property image via DELETE /properties/{imageId}/images
  */
-export async function deletePropertyImage(imageId: string): Promise<any> {
+export async function deletePropertyImage(imageId: string | number): Promise<any> {
   try {
     const response = await api.delete(`/properties/${imageId}/images`);
     return response.data;
@@ -341,26 +296,32 @@ export async function deletePropertyImage(imageId: string): Promise<any> {
   }
 }
 
-export async function updatePropertyMainImage(propertyId: string, imageId: string): Promise<any> {
-  const numericId = !isNaN(Number(imageId)) ? Number(imageId) : imageId;
-
+/**
+ * Updates property main image via PATCH /properties/{propertyId}/update-main-image
+ */
+export async function updatePropertyMainImage(
+  propertyId: string | number,
+  imageId: string | number
+): Promise<any> {
   try {
     const response = await api.patch(`/properties/${propertyId}/update-main-image`, {
-      id: numericId,
-      imageId: numericId,
-      mainImage: imageId,
+      imageId,
     });
     return response.data;
   } catch (error) {
-    console.warn(`PATCH /properties/${propertyId}/update-main-image failed, trying fallback:`, error);
-    try {
-      const resp2 = await api.patch(`/properties/${propertyId}`, {
-        mainImage: numericId,
-      });
-      return resp2.data;
-    } catch (err2) {
-      console.error(`Error updating main image for property ${propertyId}:`, error);
-      throw error;
-    }
+    console.error(`Error updating main image for property ${propertyId}:`, error);
+    throw error;
   }
+}
+
+// Backward compatibility alias for legacy callers
+export async function getUnifiedSearchPaginated(params?: any) {
+  const result = await getProperties(params);
+  return {
+    data: result.data,
+    total: result.meta.totalItems,
+    page: result.meta.currentPage,
+    limit: result.meta.itemsPerPage,
+    totalPages: result.meta.totalPages,
+  };
 }

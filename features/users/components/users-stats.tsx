@@ -1,18 +1,18 @@
 "use client";
 
 import React from "react";
-import { Users, UserCheck, UserX, ShieldCheck } from "lucide-react";
+import { Users, UserCheck, ShieldCheck, BadgeCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface UsersStatsProps {
   stats: {
     total: number;
     activeCount: number;
-    suspendedCount: number;
     regularCount: number;
     agencyCount: number;
     promoterCount: number;
     adminCount: number;
+    certifiedCount?: number;
   };
 }
 
@@ -35,7 +35,7 @@ export function UsersStats({ stats }: UsersStatsProps) {
               {stats.total}
             </span>
             <p className="text-xs text-muted-foreground mt-1">
-              Registered platform user profiles
+              Registered platform user accounts
             </p>
           </div>
         </CardContent>
@@ -63,23 +63,23 @@ export function UsersStats({ stats }: UsersStatsProps) {
         </CardContent>
       </Card>
 
-      {/* Suspended Accounts */}
+      {/* Certified Accounts */}
       <Card className="border-border/60 bg-card shadow-xs transition-all hover:border-border">
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Suspended
+              Certified Profiles
             </span>
-            <div className="h-9 w-9 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <UserX className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+              <BadgeCheck className="h-5 w-5" />
             </div>
           </div>
           <div className="mt-3">
             <span className="text-2xl font-bold tracking-tight text-foreground">
-              {stats.suspendedCount}
+              {stats.certifiedCount || 0}
             </span>
-            <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 font-medium">
-              Access restricted/suspended
+            <p className="text-xs text-violet-600 dark:text-violet-400 mt-1 font-medium">
+              Verified promoters & agencies
             </p>
           </div>
         </CardContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { AlertCircle, RotateCw } from "lucide-react";
 import { Card, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +12,7 @@ import { OverviewCoreCards } from "./overview-core-cards";
 import { OverviewPlatformStatus } from "./overview-platform-status";
 import { OverviewCharts } from "./overview-charts";
 import { OverviewRecentActivity } from "./overview-recent-activity";
-import { OverviewRecentActivitiesList } from "./overview-recent-activities-list";
+import { OverviewRecentActivitiesList, ActivityItem } from "./overview-recent-activities-list";
 
 import {
   formatNumber,
@@ -24,7 +24,10 @@ export function OverviewPageView() {
   const isMounted = useMounted();
   const {
     pageTitle,
-    data,
+    stats,
+    growthTrends,
+    breakdowns,
+    recentActivity,
     loading,
     error,
     visitsTimeframe,
@@ -39,24 +42,48 @@ export function OverviewPageView() {
     todayVisitsData,
   } = useOverview();
 
-  // Mock data for R2 endpoints and extra metrics that are not yet implemented on the backend API.
-  const mockMetrics = React.useMemo(() => ({
-    totalAgents: 142,
-    totalDevelopers: 85,
-    pendingPublications: 28,
-    publishedListings: 1240,
-    pendingPayments: 12,
-    userAppUsers: 3450,
-    userWebsiteUsers: 8900,
-    generatedLeads: 412,
-    recentActivities: [
-      { id: "1", type: "property", message: "New property 'Villa in Oran' submitted for approval", time: "5 minutes ago", status: "pending" },
-      { id: "2", type: "payment", message: "Payment confirmation pending for Promoter 'Yas Construction'", time: "1 hour ago", status: "pending" },
-      { id: "3", type: "user", message: "New Agent registration: Ahmed Mansouri", time: "2 hours ago", status: "success" },
-      { id: "4", type: "lead", message: "Lead generated for 'Appartement Alger Centre'", time: "3 hours ago", status: "success" },
-      { id: "5", type: "property", message: "Property 'Studio Hydra' published successfully", time: "1 day ago", status: "success" }
-    ]
-  }), []);
+  // Combine recent projects and properties into timeline activity feed
+  const liveActivities: ActivityItem[] = useMemo(() => {
+    const items: ActivityItem[] = [];
+
+    if (recentActivity?.recentProjects) {
+      recentActivity.recentProjects.slice(0, 3).forEach((p: any) => {
+        items.push({
+          id: `proj-${p.id}`,
+          type: "project",
+          message: `New development project '${p.title || "Complex"}' registered in ${p.city || "Algeria"}`,
+          time: formatDate(p.createdAt),
+          status: p.isPublished ? "success" : "pending",
+        });
+      });
+    }
+
+    if (recentActivity?.recentProperties) {
+      recentActivity.recentProperties.slice(0, 3).forEach((prop: any) => {
+        items.push({
+          id: `prop-${prop.id}`,
+          type: "property",
+          message: `New listing '${prop.propertyName || prop.title || "Property"}' added (${prop.price ? formatNumber(Number(prop.price)) + " DZD" : "Price on request"})`,
+          time: formatDate(prop.createdAt),
+          status: "success",
+        });
+      });
+    }
+
+    if (recentActivity?.recentUsers) {
+      recentActivity.recentUsers.slice(0, 2).forEach((u: any) => {
+        items.push({
+          id: `user-${u.id}`,
+          type: "user",
+          message: `New ${u.role || "user"} account registered: ${u.fullName || u.email}`,
+          time: formatDate(u.createdAt),
+          status: "success",
+        });
+      });
+    }
+
+    return items;
+  }, [recentActivity]);
 
   if (error) {
     return (
@@ -87,7 +114,7 @@ export function OverviewPageView() {
     );
   }
 
-  if (loading || !data) {
+  if (loading || !stats) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -119,7 +146,7 @@ export function OverviewPageView() {
       </div>
 
       <OverviewCoreCards
-        stats={data}
+        stats={stats}
         sumTotalUsers={sumTotalUsers}
         visitsTimeframe={visitsTimeframe}
         setVisitsTimeframe={setVisitsTimeframe}
@@ -127,7 +154,7 @@ export function OverviewPageView() {
       />
 
       <OverviewPlatformStatus
-        mockMetrics={mockMetrics}
+        stats={stats}
         formatNumber={formatNumber}
       />
 
@@ -143,18 +170,18 @@ export function OverviewPageView() {
         formatNumber={formatNumber}
       />
 
-      {/* Two Column Layout: Promoters Table and Real-time Activity Timeline */}
+      {/* Two Column Layout: Recent Users Table and Live Activity Feed */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <OverviewRecentActivity
-            recentPromoters={data.userStats?.promoters?.recent || []}
+            recentUsers={recentActivity?.recentUsers || []}
             getInitials={getInitials}
             formatDate={formatDate}
           />
         </div>
         <div>
           <OverviewRecentActivitiesList
-            activities={mockMetrics.recentActivities}
+            activities={liveActivities}
           />
         </div>
       </div>

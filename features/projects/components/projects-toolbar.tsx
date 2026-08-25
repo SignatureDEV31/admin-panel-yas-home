@@ -1,12 +1,26 @@
+"use client";
+
 import React from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Download, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ExportFormat } from "@/services/types/admin.types";
 
 interface ProjectsToolbarProps {
   searchQuery: string;
   setSearchQuery: (val: string) => void;
   selectedStatus: string;
   setSelectedStatus: (val: string) => void;
+  selectedPublish?: string;
+  setSelectedPublish?: (val: string) => void;
   resultsCount?: number;
+  onResetFilters?: () => void;
+  onExport?: (format?: ExportFormat) => void;
 }
 
 export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
@@ -14,31 +28,40 @@ export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
   setSearchQuery,
   selectedStatus,
   setSelectedStatus,
+  selectedPublish = "all",
+  setSelectedPublish,
   resultsCount = 0,
+  onResetFilters,
+  onExport,
 }) => {
-  const isFiltered = searchQuery !== "" || selectedStatus !== "all";
+  const isFiltered =
+    searchQuery !== "" || selectedStatus !== "all" || selectedPublish !== "all";
 
   const handleClearFilters = () => {
-    setSearchQuery("");
-    setSelectedStatus("all");
+    if (onResetFilters) {
+      onResetFilters();
+    } else {
+      setSearchQuery("");
+      setSelectedStatus("all");
+    }
   };
 
   return (
     <div className="flex flex-col gap-4 border border-border/80 bg-card p-4 rounded-xl shadow-xs">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Left Side: Search and Status Filter */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        {/* Left Side: Search and Status Filters */}
+        <div className="flex flex-1 flex-wrap items-center gap-3">
           {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative min-w-[240px] flex-1 max-w-sm">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4.5 w-4.5 text-muted-foreground/60" />
+              <Search className="h-4 w-4 text-muted-foreground/60" />
             </span>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search project title or location..."
-              className="pl-9 pr-3 h-9 w-full rounded-md border border-input bg-card text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+              placeholder="Search project title, city, wilaya..."
+              className="pl-9 pr-8 h-10 w-full rounded-lg border border-input bg-background text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
             {searchQuery && (
               <button
@@ -51,35 +74,86 @@ export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
           </div>
 
           {/* Status Select */}
-          <div className="w-full sm:w-52 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground font-medium hidden sm:inline-flex items-center gap-1">
+              <Filter className="h-3 w-3" /> Status:
+            </span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-9 px-3 w-full rounded-md border border-input bg-card text-sm text-foreground shadow-xs transition-colors focus:outline-hidden focus:ring-1 focus:ring-ring cursor-pointer"
+              className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
             >
-              <option value="all">All Project Statuses</option>
+              <option value="all">All Development Statuses</option>
               <option value="ANNOUNCEMENT">Announcement</option>
               <option value="UNDER_CONSTRUCTION">Under Construction</option>
               <option value="FINISHED">Finished</option>
             </select>
           </div>
+
+          {/* Publish Select */}
+          {setSelectedPublish && (
+            <div className="flex items-center gap-1.5">
+              <select
+                value={selectedPublish}
+                onChange={(e) => setSelectedPublish(e.target.value)}
+                className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                <option value="all">All Moderation</option>
+                <option value="published">Published Online</option>
+                <option value="unpublished">Unpublished / Draft</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Right Side: Export Menu & Count */}
+        <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 lg:pt-0 border-t lg:border-t-0 border-border/40">
+          <div className="text-xs text-muted-foreground font-medium">
+            Total: <span className="text-foreground font-bold">{resultsCount}</span>
+          </div>
+
+          {onExport && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-1.5 text-xs font-semibold cursor-pointer border-border/80 hover:bg-muted"
+                >
+                  <Download className="h-3.5 w-3.5 text-muted-foreground" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-36">
+                <DropdownMenuItem
+                  onClick={() => onExport(ExportFormat.CSV)}
+                  className="cursor-pointer text-xs font-medium"
+                >
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onExport(ExportFormat.JSON)}
+                  className="cursor-pointer text-xs font-medium"
+                >
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
       {/* Toolbar Footer: Results count & clear filters option */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground font-medium pt-1 border-t border-border/40">
-        <div>
-          Showing {resultsCount} {resultsCount === 1 ? "project" : "projects"}
-        </div>
-        {isFiltered && (
+      {isFiltered && (
+        <div className="flex items-center justify-between text-xs text-muted-foreground font-medium pt-1 border-t border-border/40">
           <button
             onClick={handleClearFilters}
             className="flex items-center gap-1 text-yashomePink hover:underline font-bold cursor-pointer transition-all"
           >
             Clear filters
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

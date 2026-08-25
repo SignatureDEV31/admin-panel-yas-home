@@ -30,14 +30,22 @@ export function UsersPageView() {
     setSearchQuery,
     selectedRole,
     setSelectedRole,
-    selectedStatus,
-    setSelectedStatus,
+    selectedCertify,
+    setSelectedCertify,
+    selectedVerified,
+    setSelectedVerified,
     sortField,
     sortOrder,
     handleSort,
     clearFilters,
     fetchUsersList,
     stats,
+    selectedUserIds,
+    isBulkActing,
+    handleSelectAll,
+    handleSelectUser,
+    handleBulkAction,
+    handleExport,
     isDialogOpen,
     editingUser,
     isSubmitting,
@@ -46,10 +54,15 @@ export function UsersPageView() {
     handleCloseModal,
     handleSaveUser,
     handleToggleStatus,
+    handleToggleCertification,
     handleDeleteUser,
   } = useUsers();
 
-  const isFiltered = searchQuery !== "" || selectedRole !== "all" || selectedStatus !== "all";
+  const isFiltered =
+    searchQuery !== "" ||
+    selectedRole !== "all" ||
+    selectedCertify !== "all" ||
+    selectedVerified !== "all";
   const hasData = users && users.length > 0;
 
   if (loading && !users.length) {
@@ -70,10 +83,13 @@ export function UsersPageView() {
         setSearchQuery={setSearchQuery}
         selectedRole={selectedRole}
         setSelectedRole={setSelectedRole}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
+        selectedCertify={selectedCertify}
+        setSelectedCertify={setSelectedCertify}
+        selectedVerified={selectedVerified}
+        setSelectedVerified={setSelectedVerified}
         resultsCount={totalItems}
         onResetFilters={clearFilters}
+        onExport={handleExport}
       />
 
       {/* Main Content Area */}
@@ -98,10 +114,16 @@ export function UsersPageView() {
               users={users}
               onEdit={handleOpenEditModal}
               onToggleStatus={handleToggleStatus}
+              onToggleCertification={handleToggleCertification}
               onDelete={handleDeleteUser}
               sortField={sortField}
               sortOrder={sortOrder}
               onSort={handleSort}
+              selectedIds={selectedUserIds}
+              onSelectAll={handleSelectAll}
+              onSelectUser={handleSelectUser}
+              onBulkAction={handleBulkAction}
+              isBulkActing={isBulkActing}
             />
 
             {/* Pagination Controls */}

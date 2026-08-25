@@ -19,7 +19,6 @@ export function PropertiesPageView() {
   const isMounted = useMounted();
   const {
     data,
-    adminStats,
     loading,
     error,
     page,
@@ -28,9 +27,14 @@ export function PropertiesPageView() {
     setPageSize,
     totalItems,
     totalPages,
-    paginatedData,
     searchQuery,
     selectedType,
+    selectedPricingType,
+    setSelectedPricingType,
+    selectedAvailability,
+    setSelectedAvailability,
+    showOnlyDeleted,
+    setShowOnlyDeleted,
     sortField,
     sortOrder,
     handleSort,
@@ -38,6 +42,12 @@ export function PropertiesPageView() {
     handleSearchChange,
     clearFilters,
     fetchAllProperties,
+    selectedPropertyIds,
+    isBulkActing,
+    handleSelectAll,
+    handleSelectProperty,
+    handleBulkAction,
+    handleExport,
     isDialogOpen,
     editingProperty,
     isSubmitting,
@@ -46,10 +56,11 @@ export function PropertiesPageView() {
     handleCloseDialog,
     handleFormSubmit,
     handleDeleteProperty,
-    overallKpiCount,
+    handleRestoreProperty,
+    handleToggleAvailability,
   } = useProperties();
 
-  if (loading && !data) {
+  if (loading && !data.length) {
     return (
       <div className="space-y-6">
         <PropertiesHeader onAddClick={handleOpenAdd} />
@@ -58,7 +69,7 @@ export function PropertiesPageView() {
     );
   }
 
-  if (error && !data) {
+  if (error && !data.length) {
     return (
       <div className="space-y-6">
         <PropertiesHeader onAddClick={handleOpenAdd} />
@@ -67,7 +78,12 @@ export function PropertiesPageView() {
     );
   }
 
-  const isFiltered = searchQuery !== "" || selectedType !== "all";
+  const isFiltered =
+    searchQuery !== "" ||
+    selectedType !== "all" ||
+    selectedPricingType !== "all" ||
+    selectedAvailability !== "all" ||
+    showOnlyDeleted;
   const hasData = data && data.length > 0;
 
   return (
@@ -77,8 +93,7 @@ export function PropertiesPageView() {
       {isMounted && (
         <PropertiesStats
           properties={data || []}
-          totalCount={overallKpiCount}
-          adminStats={adminStats}
+          totalCount={totalItems}
         />
       )}
 
@@ -87,7 +102,15 @@ export function PropertiesPageView() {
         setSearchQuery={handleSearchChange}
         selectedType={selectedType}
         setSelectedType={handleTypeChange}
+        selectedPricingType={selectedPricingType}
+        setSelectedPricingType={setSelectedPricingType}
+        selectedAvailability={selectedAvailability}
+        setSelectedAvailability={setSelectedAvailability}
+        showOnlyDeleted={showOnlyDeleted}
+        setShowOnlyDeleted={setShowOnlyDeleted}
         resultsCount={totalItems}
+        onResetFilters={clearFilters}
+        onExport={handleExport}
       />
 
       {!hasData && !isFiltered ? (
@@ -101,12 +124,19 @@ export function PropertiesPageView() {
         isMounted && (
           <div className="space-y-4">
             <PropertiesTable
-              properties={paginatedData}
+              properties={data}
               onEdit={handleOpenEdit}
               onDelete={handleDeleteProperty}
+              onRestore={handleRestoreProperty}
+              onToggleAvailability={handleToggleAvailability}
               sortField={sortField}
               sortOrder={sortOrder}
               onSort={handleSort}
+              selectedIds={selectedPropertyIds}
+              onSelectAll={handleSelectAll}
+              onSelectProperty={handleSelectProperty}
+              onBulkAction={handleBulkAction}
+              isBulkActing={isBulkActing}
             />
 
             <PaginationControl
@@ -132,8 +162,8 @@ export function PropertiesPageView() {
         title={editingProperty ? "Edit Property" : "Add Property"}
         subtitle={
           editingProperty
-            ? "Update real estate listing details via PATCH /properties/{id}"
-            : "Create a new property listing via POST /properties"
+            ? "Update real estate listing details"
+            : "Create a new property listing entry"
         }
       >
         <PropertyForm

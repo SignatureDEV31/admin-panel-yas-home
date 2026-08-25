@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   getProjects,
   createProject,
   updateProject,
   deleteProject,
+  togglePublishProject,
+  bulkProjectAction,
   Project,
 } from "@/services/projects/projects.service";
+import { exportData } from "@/services/admin/admin.service";
+import { AdminBulkActionType, ExportFormat, ExportResource } from "@/services/types/admin.types";
 import { ProjectFormData } from "../schemas/project.schema";
-import {
-  calculateProjectStats,
-  filterProjects,
-} from "@/features/projects/utils/projects-utils";
+import { calculateProjectStats } from "@/features/projects/utils/projects-utils";
 
 export function useProjects() {
   const [data, setData] = useState<Project[]>([]);
@@ -23,36 +24,68 @@ export function useProjects() {
   // Pagination State
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedPublish, setSelectedPublish] = useState<string>("all");
 
   // Sorting State
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<string | null>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Selection & Bulk Actions State
+  const [selectedProjectIds, setSelectedProjectIds] = useState<(string | number)[]>([]);
+  const [isBulkActing, setIsBulkActing] = useState(false);
 
   // Modal Dialog States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
-      setSortOrder(field === "price" || field === "surface" ? "desc" : "asc");
+      setSortOrder("asc");
     }
     setPage(1);
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await getProjects({ limit: 50 });
-      setData(result || []);
+      const result = await getProjects({
+        page,
+        limit: pageSize,
+        search: debouncedSearchQuery.trim() || undefined,
+        status: selectedStatus !== "all" ? selectedStatus : undefined,
+        isPublished:
+          selectedPublish === "published"
+            ? true
+            : selectedPublish === "unpublished"
+            ? false
+            : undefined,
+        sortBy: sortField || "createdAt",
+        sortOrder: sortOrder.toUpperCase() as "ASC" | "DESC",
+      });
+
+      setData(result.data || []);
+      setTotalItems(result.meta?.totalItems || result.data.length || 0);
+      setTotalPages(result.meta?.totalPages || 1);
     } catch (err: any) {
       console.error("Failed to load projects:", err);
       setError(
@@ -63,60 +96,24 @@ export function useProjects() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    page,
+    pageSize,
+    debouncedSearchQuery,
+    selectedStatus,
+    selectedPublish,
+    sortField,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   // Reset page on filter changes
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, selectedStatus]);
-
-  // Client-side filtering & search
-  const filteredData = useMemo(() => {
-    return filterProjects(data, searchQuery, selectedStatus);
-  }, [data, searchQuery, selectedStatus]);
-
-  // Client-side sorting
-  const sortedData = useMemo(() => {
-    if (!sortField) return filteredData;
-
-    return [...filteredData].sort((a, b) => {
-      let valA: any = "";
-      let valB: any = "";
-
-      if (sortField === "title") {
-        valA = (a.title || a.propertyName || String(a.id || a._id || "")).toLowerCase();
-        valB = (b.title || b.propertyName || String(b.id || b._id || "")).toLowerCase();
-      } else if (sortField === "status") {
-        valA = (a.status || a.projectStatus || "").toLowerCase();
-        valB = (b.status || b.projectStatus || "").toLowerCase();
-      } else if (sortField === "price") {
-        valA = Number(a.price) || 0;
-        valB = Number(b.price) || 0;
-      } else if (sortField === "surface") {
-        valA = Number(a.surface) || 0;
-        valB = Number(b.surface) || 0;
-      } else if (sortField === "location") {
-        valA = (a.city || a.state || a.wilaya || a.address || "").toLowerCase();
-        valB = (b.city || b.state || b.wilaya || b.address || "").toLowerCase();
-      }
-
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [filteredData, sortField, sortOrder]);
-
-  // Paginated Sliced Data
-  const paginatedData = useMemo(() => {
-    const startIndex = (page - 1) * pageSize;
-    return sortedData.slice(startIndex, startIndex + pageSize);
-  }, [sortedData, page, pageSize]);
-
-  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+  }, [searchQuery, selectedStatus, selectedPublish]);
 
   // Stats calculation
   const stats = useMemo(() => {
@@ -149,8 +146,14 @@ export function useProjects() {
       const payload = {
         title: formData.title.trim(),
         projectStatus: formData.projectStatus,
-        price: formData.price !== "" && formData.price !== undefined ? Number(formData.price) : undefined,
-        surface: formData.surface !== "" && formData.surface !== undefined ? Number(formData.surface) : undefined,
+        price:
+          formData.price !== "" && formData.price !== undefined
+            ? Number(formData.price)
+            : undefined,
+        surface:
+          formData.surface !== "" && formData.surface !== undefined
+            ? Number(formData.surface)
+            : undefined,
         category: formData.category?.trim() || undefined,
         state: formData.state?.trim() || undefined,
         city: formData.city?.trim() || undefined,
@@ -172,7 +175,9 @@ export function useProjects() {
       console.error("Error saving project:", err);
       const errMsg =
         err?.response?.data?.message ||
-        (Array.isArray(err?.response?.data?.message) ? err.response.data.message.join(", ") : null) ||
+        (Array.isArray(err?.response?.data?.message)
+          ? err.response.data.message.join(", ")
+          : null) ||
         err?.message ||
         "Failed to save project. Please try again.";
       toast.error(errMsg, { id: toastId });
@@ -181,13 +186,35 @@ export function useProjects() {
     }
   };
 
-  const handleDeleteProject = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
+  // Toggle publish status
+  const handleTogglePublish = async (project: Project) => {
+    const projId = project.id || project._id || "";
+    const newPublish = !project.isPublished;
+    const toastId = toast.loading(
+      newPublish ? "Publishing project..." : "Unpublishing project..."
+    );
+
+    try {
+      await togglePublishProject(projId, newPublish);
+      toast.success(
+        `Project ${newPublish ? "published" : "unpublished"} successfully!`,
+        { id: toastId }
+      );
+      await fetchProjects();
+    } catch (err: any) {
+      console.error(`Failed to toggle publish status for project ${projId}:`, err);
+      toast.error("Failed to update project publish status.", { id: toastId });
+    }
+  };
+
+  const handleDeleteProject = async (id: string | number) => {
+    if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
 
     const toastId = toast.loading("Deleting project...");
     try {
       await deleteProject(id);
       toast.success("Project deleted successfully!", { id: toastId });
+      setSelectedProjectIds((prev) => prev.filter((i) => String(i) !== String(id)));
       await fetchProjects();
     } catch (err: any) {
       console.error("Error deleting project:", err);
@@ -195,9 +222,67 @@ export function useProjects() {
     }
   };
 
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = data.map((p) => p.id || p._id || "").filter(Boolean);
+      setSelectedProjectIds(allIds);
+    } else {
+      setSelectedProjectIds([]);
+    }
+  };
+
+  const handleSelectProject = (id: string | number, checked: boolean) => {
+    if (checked) {
+      setSelectedProjectIds((prev) => [...prev, id]);
+    } else {
+      setSelectedProjectIds((prev) => prev.filter((i) => String(i) !== String(id)));
+    }
+  };
+
+  // Bulk action handler
+  const handleBulkAction = async (action: AdminBulkActionType) => {
+    if (!selectedProjectIds.length) return;
+    if (action === AdminBulkActionType.DELETE) {
+      if (!window.confirm(`Are you sure you want to delete ${selectedProjectIds.length} projects?`)) return;
+    }
+
+    setIsBulkActing(true);
+    const toastId = toast.loading(`Executing bulk action on ${selectedProjectIds.length} projects...`);
+
+    try {
+      await bulkProjectAction({
+        ids: selectedProjectIds,
+        action,
+      });
+      toast.success(`Bulk action completed successfully!`, { id: toastId });
+      setSelectedProjectIds([]);
+      await fetchProjects();
+    } catch (err: any) {
+      console.error("Bulk action failed:", err);
+      toast.error("Failed to complete bulk action.", { id: toastId });
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
+  // Export dataset
+  const handleExport = async (format: ExportFormat = ExportFormat.CSV) => {
+    const toastId = toast.loading(`Exporting projects as ${format.toUpperCase()}...`);
+    try {
+      await exportData(ExportResource.PROJECTS, format);
+      toast.success(`Projects export downloaded!`, { id: toastId });
+    } catch (err: any) {
+      console.error("Export failed:", err);
+      toast.error("Failed to export projects.", { id: toastId });
+    }
+  };
+
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedStatus("all");
+    setSelectedPublish("all");
+    setPage(1);
   };
 
   return {
@@ -208,19 +293,27 @@ export function useProjects() {
     setPage,
     pageSize,
     setPageSize,
-    filteredData,
-    paginatedData,
+    totalItems,
     totalPages,
     stats,
     searchQuery,
     setSearchQuery,
     selectedStatus,
     setSelectedStatus,
+    selectedPublish,
+    setSelectedPublish,
     sortField,
     sortOrder,
     handleSort,
     resetFilters,
     fetchProjects,
+    // Selection & Bulk Actions
+    selectedProjectIds,
+    isBulkActing,
+    handleSelectAll,
+    handleSelectProject,
+    handleBulkAction,
+    handleExport,
     // Modal states and handlers
     isDialogOpen,
     editingProject,
@@ -229,6 +322,7 @@ export function useProjects() {
     handleOpenEditModal,
     handleCloseModal,
     handleSubmitProject,
+    handleTogglePublish,
     handleDeleteProject,
   };
 }

@@ -13,25 +13,33 @@ import { PaginationControl } from "@/components/shared/pagination/pagination-con
 
 export const ProjectsPageView: React.FC = () => {
   const {
+    data,
     loading,
     error,
     page,
     setPage,
     pageSize,
     setPageSize,
-    filteredData,
-    paginatedData,
+    totalItems,
     totalPages,
     stats,
     searchQuery,
     setSearchQuery,
     selectedStatus,
     setSelectedStatus,
+    selectedPublish,
+    setSelectedPublish,
     sortField,
     sortOrder,
     handleSort,
     resetFilters,
     fetchProjects,
+    selectedProjectIds,
+    isBulkActing,
+    handleSelectAll,
+    handleSelectProject,
+    handleBulkAction,
+    handleExport,
     isDialogOpen,
     editingProject,
     isSubmitting,
@@ -39,8 +47,12 @@ export const ProjectsPageView: React.FC = () => {
     handleOpenEditModal,
     handleCloseModal,
     handleSubmitProject,
+    handleTogglePublish,
     handleDeleteProject,
   } = useProjects();
+
+  const isFiltered =
+    searchQuery !== "" || selectedStatus !== "all" || selectedPublish !== "all";
 
   return (
     <div className="space-y-6 pb-12">
@@ -56,12 +68,17 @@ export const ProjectsPageView: React.FC = () => {
         setSearchQuery={setSearchQuery}
         selectedStatus={selectedStatus}
         setSelectedStatus={setSelectedStatus}
+        selectedPublish={selectedPublish}
+        setSelectedPublish={setSelectedPublish}
+        resultsCount={totalItems}
+        onResetFilters={resetFilters}
+        onExport={handleExport}
       />
 
       {/* Content State: Loading, Error, Empty, or Table */}
-      {loading ? (
+      {loading && !data.length ? (
         <ProjectsLoading />
-      ) : error ? (
+      ) : error && !data.length ? (
         <div className="flex flex-col items-center justify-center bg-card border border-border/80 p-8 rounded-xl text-center shadow-xs">
           <p className="text-sm text-destructive font-semibold mb-4">{error}</p>
           <button
@@ -71,20 +88,25 @@ export const ProjectsPageView: React.FC = () => {
             Retry Request
           </button>
         </div>
-      ) : filteredData.length === 0 ? (
-        <ProjectsEmptyState
-          searchQuery={searchQuery}
-          onReset={resetFilters}
-        />
+      ) : data.length === 0 && isFiltered ? (
+        <ProjectsEmptyState searchQuery={searchQuery} onReset={resetFilters} />
+      ) : data.length === 0 ? (
+        <ProjectsEmptyState searchQuery={searchQuery} onReset={resetFilters} />
       ) : (
         <div className="space-y-4">
           <ProjectsTable
-            projects={paginatedData}
+            projects={data}
             onEdit={handleOpenEditModal}
             onDelete={handleDeleteProject}
+            onTogglePublish={handleTogglePublish}
             sortField={sortField}
             sortOrder={sortOrder}
             onSort={handleSort}
+            selectedIds={selectedProjectIds}
+            onSelectAll={handleSelectAll}
+            onSelectProject={handleSelectProject}
+            onBulkAction={handleBulkAction}
+            isBulkActing={isBulkActing}
           />
 
           {/* Pagination Controls */}
@@ -92,7 +114,7 @@ export const ProjectsPageView: React.FC = () => {
             currentPage={page}
             totalPages={totalPages}
             pageSize={pageSize}
-            totalItems={filteredData.length}
+            totalItems={totalItems}
             onPageChange={setPage}
             onPageSizeChange={(newSize) => {
               setPageSize(newSize);

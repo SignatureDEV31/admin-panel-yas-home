@@ -10,7 +10,11 @@ import {
   updateUser,
   toggleUserStatus,
   deleteUser,
+  toggleUserCertification,
+  bulkUserAction,
 } from "@/services/users/users.service";
+import { exportData } from "@/services/admin/admin.service";
+import { AdminBulkActionType, ExportFormat, ExportResource } from "@/services/types/admin.types";
 
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -28,10 +32,16 @@ export function useUsers() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedCertify, setSelectedCertify] = useState<string>("all");
+  const [selectedVerified, setSelectedVerified] = useState<string>("all");
 
   // Sorting State
   const [sortField, setSortField] = useState<string | null>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Selection & Bulk Actions State
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [isBulkActing, setIsBulkActing] = useState(false);
 
   // Modal Dialog States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,6 +52,7 @@ export function useUsers() {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
+      setPage(1);
     }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);
@@ -66,8 +77,20 @@ export function useUsers() {
         search: debouncedSearchQuery.trim() || undefined,
         role: selectedRole !== "all" ? selectedRole : undefined,
         status: selectedStatus !== "all" ? selectedStatus : undefined,
-        sortBy: sortField || undefined,
-        sortOrder,
+        certify:
+          selectedCertify === "certified"
+            ? true
+            : selectedCertify === "uncertified"
+            ? false
+            : undefined,
+        emailVerified:
+          selectedVerified === "verified"
+            ? true
+            : selectedVerified === "unverified"
+            ? false
+            : undefined,
+        sortBy: sortField || "createdAt",
+        sortOrder: sortOrder.toUpperCase() as "ASC" | "DESC",
       });
 
       setUsers(result.data || []);
@@ -83,16 +106,23 @@ export function useUsers() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, debouncedSearchQuery, selectedRole, selectedStatus, sortField, sortOrder]);
+  }, [
+    page,
+    pageSize,
+    debouncedSearchQuery,
+    selectedRole,
+    selectedStatus,
+    selectedCertify,
+    selectedVerified,
+    sortField,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     fetchUsersList();
   }, [fetchUsersList]);
 
-  // Reset page to 1 on filter changes
-  useEffect(() => {
-    setPage(1);
-  }, [searchQuery, selectedRole, selectedStatus]);
+
 
   // Modal handlers
   const handleOpenAddModal = () => {
@@ -160,14 +190,36 @@ export function useUsers() {
     }
   };
 
+  // Toggle Certification status
+  const handleToggleCertification = async (user: User) => {
+    const targetId = user.id || user._id || "";
+    const currentCert = !!user.profile?.certify;
+    const toastId = toast.loading(
+      currentCert ? "Revoking certification..." : "Certifying profile..."
+    );
+
+    try {
+      await toggleUserCertification(targetId, !currentCert);
+      toast.success(
+        `Profile certification ${!currentCert ? "granted" : "revoked"} successfully!`,
+        { id: toastId }
+      );
+      await fetchUsersList();
+    } catch (err: any) {
+      console.error(`Failed to toggle certification for user ${targetId}:`, err);
+      toast.error("Failed to update certification status.", { id: toastId });
+    }
+  };
+
   // Delete user handler
   const handleDeleteUser = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
 
     const toastId = toast.loading("Deleting user...");
     try {
       await deleteUser(id);
       toast.success("User deleted successfully!", { id: toastId });
+      setSelectedUserIds((prev) => prev.filter((i) => i !== id));
       await fetchUsersList();
     } catch (err: any) {
       console.error("Error deleting user:", err);
@@ -175,10 +227,69 @@ export function useUsers() {
     }
   };
 
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = users.map((u) => u.id || u._id || "").filter(Boolean);
+      setSelectedUserIds(allIds);
+    } else {
+      setSelectedUserIds([]);
+    }
+  };
+
+  const handleSelectUser = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedUserIds((prev) => [...prev, id]);
+    } else {
+      setSelectedUserIds((prev) => prev.filter((i) => i !== id));
+    }
+  };
+
+  // Bulk Action Execution
+  const handleBulkAction = async (action: AdminBulkActionType, value?: string) => {
+    if (!selectedUserIds.length) return;
+    if (action === AdminBulkActionType.DELETE) {
+      if (!window.confirm(`Are you sure you want to delete ${selectedUserIds.length} users?`)) return;
+    }
+
+    setIsBulkActing(true);
+    const toastId = toast.loading(`Executing bulk action on ${selectedUserIds.length} users...`);
+
+    try {
+      await bulkUserAction({
+        ids: selectedUserIds,
+        action,
+        value,
+      });
+      toast.success(`Bulk action completed successfully!`, { id: toastId });
+      setSelectedUserIds([]);
+      await fetchUsersList();
+    } catch (err: any) {
+      console.error("Bulk action failed:", err);
+      toast.error("Failed to complete bulk action.", { id: toastId });
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
+  // Export dataset
+  const handleExport = async (format: ExportFormat = ExportFormat.CSV) => {
+    const toastId = toast.loading(`Exporting users data as ${format.toUpperCase()}...`);
+    try {
+      await exportData(ExportResource.USERS, format);
+      toast.success(`Users data export downloaded!`, { id: toastId });
+    } catch (err: any) {
+      console.error("Export failed:", err);
+      toast.error("Failed to export users data.", { id: toastId });
+    }
+  };
+
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedRole("all");
     setSelectedStatus("all");
+    setSelectedCertify("all");
+    setSelectedVerified("all");
     setPage(1);
   };
 
@@ -186,20 +297,20 @@ export function useUsers() {
   const stats = useMemo(() => {
     const total = totalItems || users.length;
     const activeCount = users.filter((u) => u.status === "active").length;
-    const suspendedCount = users.filter((u) => u.status === "suspended").length;
     const regularCount = users.filter((u) => u.role === "regular").length;
     const agencyCount = users.filter((u) => u.role === "agence").length;
     const promoterCount = users.filter((u) => u.role === "promoter").length;
     const adminCount = users.filter((u) => u.role === "admin").length;
+    const certifiedCount = users.filter((u) => !!u.profile?.certify).length;
 
     return {
       total,
       activeCount,
-      suspendedCount,
       regularCount,
       agencyCount,
       promoterCount,
       adminCount,
+      certifiedCount,
     };
   }, [totalItems, users]);
 
@@ -216,15 +327,26 @@ export function useUsers() {
     searchQuery,
     setSearchQuery,
     selectedRole,
-    setSelectedRole,
+    setSelectedRole: (val: string) => { setSelectedRole(val); setPage(1); },
     selectedStatus,
-    setSelectedStatus,
+    setSelectedStatus: (val: string) => { setSelectedStatus(val); setPage(1); },
+    selectedCertify,
+    setSelectedCertify: (val: string) => { setSelectedCertify(val); setPage(1); },
+    selectedVerified,
+    setSelectedVerified: (val: string) => { setSelectedVerified(val); setPage(1); },
     sortField,
     sortOrder,
     handleSort,
     clearFilters,
     fetchUsersList,
     stats,
+    // Selection & Bulk Actions
+    selectedUserIds,
+    isBulkActing,
+    handleSelectAll,
+    handleSelectUser,
+    handleBulkAction,
+    handleExport,
     // Modal & Action handlers
     isDialogOpen,
     editingUser,
@@ -234,6 +356,7 @@ export function useUsers() {
     handleCloseModal,
     handleSaveUser,
     handleToggleStatus,
+    handleToggleCertification,
     handleDeleteUser,
   };
 }

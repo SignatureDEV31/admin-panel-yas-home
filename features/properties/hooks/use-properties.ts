@@ -3,25 +3,28 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import {
-  getUnifiedSearchPaginated,
+  getProperties,
   createProperty,
   updateProperty,
   deleteProperty,
+  restoreProperty,
+  bulkPropertyAction,
   CreatePropertyPayload,
+  Property,
 } from "@/services/properties/properties.service";
-import { getAdminStats } from "@/services/admin/admin.service";
-import { AdminStats } from "@/services/types/admin.types";
-import { Property } from "@/features/properties/types/property";
+import { exportData } from "@/services/admin/admin.service";
+import { AdminBulkActionType, ExportFormat, ExportResource } from "@/services/types/admin.types";
 
 export function useProperties() {
-  const [data, setData] = useState<Property[] | null>(null);
-  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Pagination State
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Dialog & Mutation States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,10 +35,26 @@ export function useProperties() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
+  const [selectedPricingType, setSelectedPricingType] = useState("all");
+  const [selectedAvailability, setSelectedAvailability] = useState("all");
+  const [showOnlyDeleted, setShowOnlyDeleted] = useState(false);
 
   // Sorting State
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<string | null>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Selection & Bulk Action States
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<(string | number)[]>([]);
+  const [isBulkActing, setIsBulkActing] = useState(false);
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -47,69 +66,31 @@ export function useProperties() {
     setPage(1);
   };
 
-  // Fetch admin stats
-  const fetchStats = useCallback(async () => {
-    try {
-      const stats = await getAdminStats();
-      setAdminStats(stats);
-    } catch (err) {
-      console.warn("Could not fetch admin stats:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
-
-  // Debounce search query changes
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
-
-  // Fetch properties with batching
   const fetchAllProperties = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const firstBatch = await getUnifiedSearchPaginated({
-        searchIn: "properties",
-        page: 1,
-        limit: 50,
-        keyword: debouncedSearchQuery.trim() || undefined,
+      const result = await getProperties({
+        page,
+        limit: pageSize,
+        search: debouncedSearchQuery.trim() || undefined,
         propertyType: selectedType !== "all" ? selectedType : undefined,
+        pricingType: selectedPricingType !== "all" ? selectedPricingType : undefined,
+        availableStatus:
+          selectedAvailability === "available"
+            ? true
+            : selectedAvailability === "unavailable"
+            ? false
+            : undefined,
+        onlyDeleted: showOnlyDeleted ? true : undefined,
+        withDeleted: showOnlyDeleted ? true : undefined,
+        sortBy: sortField || "createdAt",
+        sortOrder: sortOrder.toUpperCase() as "ASC" | "DESC",
       });
 
-      let allProps = firstBatch.data || [];
-      const totalFromApi = firstBatch.total || adminStats?.properties || 314;
-
-      if (firstBatch.data?.length === 50 && totalFromApi > 50) {
-        const totalBatches = Math.ceil(totalFromApi / 50);
-        const batchPromises = [];
-        for (let p = 2; p <= totalBatches; p++) {
-          batchPromises.push(
-            getUnifiedSearchPaginated({
-              searchIn: "properties",
-              page: p,
-              limit: 50,
-              keyword: debouncedSearchQuery.trim() || undefined,
-              propertyType: selectedType !== "all" ? selectedType : undefined,
-            })
-          );
-        }
-
-        const additionalBatches = await Promise.all(batchPromises);
-        additionalBatches.forEach((batch) => {
-          if (batch.data && batch.data.length > 0) {
-            allProps = [...allProps, ...batch.data];
-          }
-        });
-      }
-
-      setData(allProps);
+      setData(result.data || []);
+      setTotalItems(result.meta?.totalItems || result.data.length || 0);
+      setTotalPages(result.meta?.totalPages || 1);
     } catch (err: any) {
       console.error("Failed to load properties:", err);
       setError(
@@ -120,15 +101,23 @@ export function useProperties() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchQuery, selectedType, adminStats]);
+  }, [
+    page,
+    pageSize,
+    debouncedSearchQuery,
+    selectedType,
+    selectedPricingType,
+    selectedAvailability,
+    showOnlyDeleted,
+    sortField,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     fetchAllProperties();
   }, [fetchAllProperties]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchQuery, selectedType]);
+
 
   const handleTypeChange = (newType: string) => {
     setSelectedType(newType);
@@ -137,7 +126,6 @@ export function useProperties() {
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
-    setPage(1);
   };
 
   const handleOpenAdd = () => {
@@ -172,7 +160,6 @@ export function useProperties() {
       }
       setIsDialogOpen(false);
       setEditingProperty(null);
-      await fetchStats();
       await fetchAllProperties();
     } catch (err: any) {
       console.error("Property operation failed:", err);
@@ -186,15 +173,15 @@ export function useProperties() {
     }
   };
 
-  const handleDeleteProperty = async (id: string) => {
+  const handleDeleteProperty = async (id: string | number) => {
     if (!id) return;
-    if (!window.confirm("Are you sure you want to delete this property?")) return;
+    if (!window.confirm("Are you sure you want to soft-delete this property?")) return;
 
     const toastId = toast.loading("Deleting property...");
     try {
       await deleteProperty(id);
       toast.success("Property deleted successfully!", { id: toastId });
-      await fetchStats();
+      setSelectedPropertyIds((prev) => prev.filter((i) => String(i) !== String(id)));
       await fetchAllProperties();
     } catch (err: any) {
       console.error("Failed to delete property:", err);
@@ -206,57 +193,107 @@ export function useProperties() {
     }
   };
 
-  const totalItems = data?.length || 0;
-  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const handleRestoreProperty = async (id: string | number) => {
+    if (!id) return;
+    const toastId = toast.loading("Restoring property...");
+    try {
+      await restoreProperty(id);
+      toast.success("Property restored successfully!", { id: toastId });
+      await fetchAllProperties();
+    } catch (err: any) {
+      console.error("Failed to restore property:", err);
+      toast.error("Failed to restore property.", { id: toastId });
+    }
+  };
 
-  const sortedData = useMemo(() => {
-    if (!data) return [];
-    if (!sortField) return data;
+  // Toggle availability
+  const handleToggleAvailability = async (property: Property) => {
+    const propId = property.id || property._id || "";
+    const newStatus = !property.availableStatus;
+    const toastId = toast.loading(
+      newStatus ? "Marking as available..." : "Marking as unavailable..."
+    );
 
-    return [...data].sort((a, b) => {
-      let valA: any = "";
-      let valB: any = "";
+    try {
+      await updateProperty(propId, { availableStatus: newStatus });
+      toast.success(
+        `Property marked as ${newStatus ? "available" : "unavailable"}!`,
+        { id: toastId }
+      );
+      await fetchAllProperties();
+    } catch (err: any) {
+      console.error("Failed to update availability:", err);
+      toast.error("Failed to update availability status.", { id: toastId });
+    }
+  };
 
-      if (sortField === "title") {
-        valA = (a.title || a.propertyName || String(a.id || a._id || "")).toLowerCase();
-        valB = (b.title || b.propertyName || String(b.id || b._id || "")).toLowerCase();
-      } else if (sortField === "propertyType") {
-        valA = (a.propertyType || "").toLowerCase();
-        valB = (b.propertyType || "").toLowerCase();
-      } else if (sortField === "price") {
-        valA = Number(a.price) || 0;
-        valB = Number(b.price) || 0;
-      } else if (sortField === "surface") {
-        valA = Number(a.surface) || 0;
-        valB = Number(b.surface) || 0;
-      } else if (sortField === "location") {
-        valA = (a.city || a.state || a.wilaya || a.address || "").toLowerCase();
-        valB = (b.city || b.state || b.wilaya || b.address || "").toLowerCase();
-      }
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = data.map((p) => p.id || p._id || "").filter(Boolean);
+      setSelectedPropertyIds(allIds);
+    } else {
+      setSelectedPropertyIds([]);
+    }
+  };
 
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [data, sortField, sortOrder]);
+  const handleSelectProperty = (id: string | number, checked: boolean) => {
+    if (checked) {
+      setSelectedPropertyIds((prev) => [...prev, id]);
+    } else {
+      setSelectedPropertyIds((prev) => prev.filter((i) => String(i) !== String(id)));
+    }
+  };
 
-  const paginatedData = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return sortedData.slice(start, start + pageSize);
-  }, [sortedData, page, pageSize]);
+  // Bulk actions
+  const handleBulkAction = async (action: AdminBulkActionType) => {
+    if (!selectedPropertyIds.length) return;
+    if (action === AdminBulkActionType.DELETE) {
+      if (!window.confirm(`Are you sure you want to soft-delete ${selectedPropertyIds.length} properties?`)) return;
+    }
+
+    setIsBulkActing(true);
+    const toastId = toast.loading(`Executing bulk action on ${selectedPropertyIds.length} properties...`);
+
+    try {
+      await bulkPropertyAction({
+        ids: selectedPropertyIds,
+        action,
+      });
+      toast.success(`Bulk action completed successfully!`, { id: toastId });
+      setSelectedPropertyIds([]);
+      await fetchAllProperties();
+    } catch (err: any) {
+      console.error("Bulk action failed:", err);
+      toast.error("Failed to complete bulk action.", { id: toastId });
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
+  // Export dataset
+  const handleExport = async (format: ExportFormat = ExportFormat.CSV) => {
+    const toastId = toast.loading(`Exporting properties as ${format.toUpperCase()}...`);
+    try {
+      await exportData(ExportResource.PROPERTIES, format);
+      toast.success(`Properties export downloaded!`, { id: toastId });
+    } catch (err: any) {
+      console.error("Export failed:", err);
+      toast.error("Failed to export properties.", { id: toastId });
+    }
+  };
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedType("all");
+    setSelectedPricingType("all");
+    setSelectedAvailability("all");
+    setShowOnlyDeleted(false);
     setPage(1);
   };
 
-  const overallKpiCount =
-    adminStats?.properties !== undefined ? adminStats.properties : totalItems;
-
   return {
     data,
-    adminStats,
     loading,
     error,
     page,
@@ -265,9 +302,14 @@ export function useProperties() {
     setPageSize,
     totalItems,
     totalPages,
-    paginatedData,
     searchQuery,
     selectedType,
+    selectedPricingType,
+    setSelectedPricingType: (val: string) => { setSelectedPricingType(val); setPage(1); },
+    selectedAvailability,
+    setSelectedAvailability: (val: string) => { setSelectedAvailability(val); setPage(1); },
+    showOnlyDeleted,
+    setShowOnlyDeleted: (val: boolean) => { setShowOnlyDeleted(val); setPage(1); },
     sortField,
     sortOrder,
     handleSort,
@@ -275,6 +317,13 @@ export function useProperties() {
     handleSearchChange,
     clearFilters,
     fetchAllProperties,
+    // Selection & Bulk
+    selectedPropertyIds,
+    isBulkActing,
+    handleSelectAll,
+    handleSelectProperty,
+    handleBulkAction,
+    handleExport,
     // Dialog state & handlers
     isDialogOpen,
     editingProperty,
@@ -284,6 +333,7 @@ export function useProperties() {
     handleCloseDialog,
     handleFormSubmit,
     handleDeleteProperty,
-    overallKpiCount,
+    handleRestoreProperty,
+    handleToggleAvailability,
   };
 }

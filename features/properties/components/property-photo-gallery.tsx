@@ -53,6 +53,7 @@ export const PropertyPhotoGallery: React.FC<PropertyPhotoGalleryProps> = ({
 
       return {
         ...img,
+        id: String(img.id),
         isMain: Boolean(isMain),
       };
     });
@@ -177,7 +178,7 @@ export const PropertyPhotoGallery: React.FC<PropertyPhotoGalleryProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRotate(photo.id, 90);
+                          handleRotate(String(photo.id), 90);
                         }}
                         className="p-1.5 rounded bg-white/20 hover:bg-white/40 text-white transition-all cursor-pointer"
                         title="Rotate 90°"
@@ -191,7 +192,7 @@ export const PropertyPhotoGallery: React.FC<PropertyPhotoGalleryProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onSetMainImage(photo.id);
+                            onSetMainImage(String(photo.id));
                           }}
                           className="p-1.5 rounded bg-amber-500/80 hover:bg-amber-500 text-white transition-all cursor-pointer"
                           title="Set as Main Photo"
@@ -205,7 +206,7 @@ export const PropertyPhotoGallery: React.FC<PropertyPhotoGalleryProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteImage(photo.id);
+                          onDeleteImage(String(photo.id));
                         }}
                         className="p-1.5 rounded bg-destructive/80 hover:bg-destructive text-white transition-all cursor-pointer"
                         title="Delete Photo"

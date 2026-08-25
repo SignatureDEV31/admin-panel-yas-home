@@ -5,13 +5,14 @@ import { Menu, Bell, LogOut } from "lucide-react";
 import { useSidebar } from "../../../contexts/sidebar/sidebar-context";
 import { useAuth } from "@/contexts/auth/auth-context";
 import { ModeToggle } from "./mode-toggle";
+import { GlobalSearch } from "./global-search";
 
 export const Header = () => {
   const { toggleMobileOpen } = useSidebar();
   const { user, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 h-16 w-full border-b border-border/60 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8">
+    <header className="sticky top-0 z-30 h-16 w-full border-b border-border/60 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8 gap-4">
       {/* Mobile Toggle & Left Side */}
       <div className="flex items-center gap-4">
         <button
@@ -23,14 +24,19 @@ export const Header = () => {
         </button>
 
         <div className="flex flex-col">
-          <span className="text-sm font-semibold text-foreground tracking-tight">
-            Dashboard
+          <span className="text-sm font-semibold text-foreground tracking-tight hidden sm:inline">
+            Admin Console
           </span>
         </div>
       </div>
 
+      {/* Center / Global Search Bar */}
+      <div className="flex-1 flex justify-center max-w-md">
+        <GlobalSearch />
+      </div>
+
       {/* Right Side / Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Notification Button */}
         <button
           className="relative p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
@@ -39,11 +45,12 @@ export const Header = () => {
           <Bell className="h-5 w-5" />
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
         </button>
+
         <ModeToggle />
 
         {/* User Name & Profile Avatar */}
         <div className="flex items-center gap-3 border-s ps-3 border-border/60">
-          <div className="h-9 w-9 rounded-full text-black border font-semibold flex items-center justify-center shadow-xs">
+          <div className="h-9 w-9 rounded-full bg-primary/10 text-primary border border-primary/20 font-semibold flex items-center justify-center shadow-xs">
             {user?.fullName ? user.fullName[0].toUpperCase() : "A"}
           </div>
           <div className="hidden sm:flex flex-col text-end">

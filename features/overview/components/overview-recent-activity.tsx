@@ -1,17 +1,17 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Users, Mail, Phone } from "lucide-react";
-import { RecentPromoter } from "@/services/types/admin.types";
+import { Users, Mail, Phone, BadgeCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface OverviewRecentActivityProps {
-  recentPromoters: RecentPromoter[];
+  recentUsers?: any[];
   getInitials: (name: string | null) => string;
   formatDate: (dateStr: string | null) => string;
 }
 
 export const OverviewRecentActivity: React.FC<OverviewRecentActivityProps> = ({
-  recentPromoters,
+  recentUsers = [],
   getInitials,
   formatDate,
 }) => {
@@ -20,62 +20,83 @@ export const OverviewRecentActivity: React.FC<OverviewRecentActivityProps> = ({
       <CardHeader className="space-y-1">
         <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
           <Users className="h-4 w-4 text-yashomePink" />
-          Recent Promoters
+          Recent Registrations
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Overview of recently registered developers and agencies.
+          Latest users, promoters, and agencies registered on the platform.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        {(!recentPromoters || recentPromoters.length === 0) ? (
+        {!recentUsers || recentUsers.length === 0 ? (
           <div className="p-6 text-center text-sm text-muted-foreground">
-            No recent promoters registered in the system.
+            No recent users registered in the system.
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/10 border-border/50 text-xs font-semibold text-muted-foreground uppercase">
                 <TableHead className="w-12 h-9 px-6 font-semibold">Avatar</TableHead>
-                <TableHead className="h-9 px-6 font-semibold">Name</TableHead>
-                <TableHead className="h-9 px-6 font-semibold">Email</TableHead>
-                <TableHead className="h-9 px-6 font-semibold">Phone</TableHead>
-                <TableHead className="h-9 px-6 font-semibold text-right">Created Date</TableHead>
+                <TableHead className="h-9 px-6 font-semibold">Name / Company</TableHead>
+                <TableHead className="h-9 px-6 font-semibold">Role</TableHead>
+                <TableHead className="h-9 px-6 font-semibold">Contact</TableHead>
+                <TableHead className="h-9 px-6 font-semibold text-right">Registered</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-border/40">
-              {recentPromoters.map((promoter, idx) => (
-                <TableRow key={idx} className="hover:bg-muted/5 transition-colors border-border/40">
+              {recentUsers.map((user, idx) => (
+                <TableRow key={user.id || idx} className="hover:bg-muted/5 transition-colors border-border/40">
                   {/* Avatar */}
                   <TableCell className="px-6 py-3 font-medium align-middle">
                     <div className="h-9 w-9 rounded-full bg-main/5 dark:bg-main/20 text-indigo-600 dark:text-indigo-400 text-sm font-semibold flex items-center justify-center border border-indigo-100/50 dark:border-indigo-900/50 uppercase select-none shadow-xxs">
-                      {getInitials(promoter.fullName)}
+                      {getInitials(user.fullName || user.profile?.raison_social)}
                     </div>
                   </TableCell>
-                  
-                  {/* Name */}
+
+                  {/* Name & Company */}
                   <TableCell className="px-6 py-3 font-semibold text-foreground text-sm leading-none">
-                    {promoter.fullName && promoter.fullName.trim() !== "" ? promoter.fullName : "Unknown"}
-                  </TableCell>
-
-                  {/* Email */}
-                  <TableCell className="px-6 py-3 text-muted-foreground text-sm font-medium">
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                      <span>{promoter.email}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="flex items-center gap-1.5">
+                        {user.fullName || "User"}
+                        {user.profile?.certify && (
+                          <span title="Certified Profile">
+                            <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+                          </span>
+                        )}
+                      </span>
+                      {user.profile?.raison_social && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          {user.profile.raison_social}
+                        </span>
+                      )}
                     </div>
                   </TableCell>
 
-                  {/* Phone */}
+                  {/* Role */}
+                  <TableCell className="px-6 py-3">
+                    <Badge variant="outline" className="capitalize text-xs font-semibold">
+                      {user.role || "Regular"}
+                    </Badge>
+                  </TableCell>
+
+                  {/* Contact */}
                   <TableCell className="px-6 py-3 text-muted-foreground text-sm font-medium">
-                    <div className="flex items-center gap-1.5">
-                      <Phone className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-                      <span>{promoter.phoneNumber && promoter.phoneNumber.trim() !== "" ? promoter.phoneNumber : "-"}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Mail className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+                        <span className="truncate max-w-[140px]">{user.email}</span>
+                      </div>
+                      {user.phoneNumber && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
+                          <Phone className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+                          <span>{user.phoneNumber}</span>
+                        </div>
+                      )}
                     </div>
                   </TableCell>
 
                   {/* Created Date */}
-                  <TableCell className="px-6 py-3 text-right text-muted-foreground text-sm font-semibold">
-                    {formatDate(promoter.createdAt)}
+                  <TableCell className="px-6 py-3 text-right text-muted-foreground text-xs font-semibold">
+                    {formatDate(user.createdAt)}
                   </TableCell>
                 </TableRow>
               ))}

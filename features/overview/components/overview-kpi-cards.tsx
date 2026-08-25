@@ -47,10 +47,10 @@ export const OverviewKpiCards: React.FC<OverviewKpiCardsProps> = ({
 }) => {
   const currentVisits =
     visitsTimeframe === 'today'
-      ? stats.visitStats?.today || 0
+      ? (stats as any).visitStats?.today || (stats as any).analytics?.totalVisits || 0
       : visitsTimeframe === 'week'
-      ? stats.visitStats?.thisWeek || 0
-      : stats.visitStats?.thisMonth || 0;
+      ? (stats as any).visitStats?.thisWeek || (stats as any).analytics?.totalVisits || 0
+      : (stats as any).visitStats?.thisMonth || (stats as any).analytics?.totalVisits || 0;
 
   return (
     <div className="space-y-6">
@@ -134,7 +134,11 @@ export const OverviewKpiCards: React.FC<OverviewKpiCardsProps> = ({
           </CardHeader>
           <CardContent className="mt-1">
             <span className="text-4xl font-extrabold tracking-tight text-foreground">
-              {formatNumber(stats.properties || 0)}
+              {formatNumber(
+                typeof stats.properties === "number"
+                  ? stats.properties
+                  : stats.properties?.total || 0
+              )}
             </span>
             <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1 font-medium">
               Active real estate listings on portal
@@ -152,7 +156,11 @@ export const OverviewKpiCards: React.FC<OverviewKpiCardsProps> = ({
           </CardHeader>
           <CardContent className="mt-1">
             <span className="text-4xl font-extrabold tracking-tight text-foreground">
-              {formatNumber(stats.projects || 0)}
+              {formatNumber(
+                typeof stats.projects === "number"
+                  ? stats.projects
+                  : stats.projects?.total || 0
+              )}
             </span>
             <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1 font-medium">
               Promoter development complexes

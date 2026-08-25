@@ -22,27 +22,36 @@ export const PropertiesStats: React.FC<PropertiesStatsProps> = ({
     [properties]
   );
 
-  const displayTotal = totalCount !== undefined ? totalCount : (adminStats?.properties ?? total);
+  const displayTotal: number =
+    totalCount !== undefined
+      ? totalCount
+      : typeof adminStats?.properties === "number"
+      ? adminStats.properties
+      : adminStats?.properties?.total ?? total;
 
   const displayForSale = useMemo(() => {
-    if (adminStats?.propertiesByType) {
-      const match = adminStats.propertiesByType.find((p) => (p.type || "").toUpperCase() === "VENTE");
+    if ((adminStats as any)?.propertiesByType) {
+      const match = (adminStats as any).propertiesByType.find(
+        (p: any) => (p.type || "").toUpperCase() === "VENTE"
+      );
       if (match) return Number(match.count || 0);
     }
     return forSale;
   }, [adminStats, forSale]);
 
   const displayForRent = useMemo(() => {
-    if (adminStats?.propertiesByType) {
-      const match = adminStats.propertiesByType.find((p) => (p.type || "").toUpperCase() === "LOCATION");
+    if ((adminStats as any)?.propertiesByType) {
+      const match = (adminStats as any).propertiesByType.find(
+        (p: any) => (p.type || "").toUpperCase() === "LOCATION"
+      );
       if (match) return Number(match.count || 0);
     }
     return forRent;
   }, [adminStats, forRent]);
 
   const displayWilayas = useMemo(() => {
-    if (adminStats?.propertiesByWilaya && adminStats.propertiesByWilaya.length > 0) {
-      return adminStats.propertiesByWilaya.length;
+    if ((adminStats as any)?.propertiesByWilaya && (adminStats as any).propertiesByWilaya.length > 0) {
+      return (adminStats as any).propertiesByWilaya.length;
     }
     return uniqueStatesCount;
   }, [adminStats, uniqueStatesCount]);
