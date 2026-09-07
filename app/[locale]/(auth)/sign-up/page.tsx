@@ -43,7 +43,7 @@ export default function SignupPage() {
   };
 
   return (
-    <AuthRedirect>
+
       <main className="relative w-full min-h-screen overflow-hidden">
         {/* Background Image covering full viewport */}
         <div className="absolute inset-0 w-full h-full">
@@ -198,6 +198,6 @@ export default function SignupPage() {
           </div>
         </div>
       </main>
-    </AuthRedirect>
+
   );
 }

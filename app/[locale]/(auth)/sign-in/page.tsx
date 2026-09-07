@@ -40,7 +40,7 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthRedirect>
+    
       <main className="relative w-full min-h-screen overflow-hidden">
         {/* Background Image covering full viewport */}
         <div className="absolute inset-0 w-full h-full">
@@ -173,6 +173,6 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
-    </AuthRedirect>
+
   );
 }
