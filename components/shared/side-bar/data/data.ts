@@ -15,11 +15,11 @@ export const menuGroups: SidebarCategory[] = [
         icon: LayoutDashboard,
         href: "/overview",
       },
-      {
-        labelKey: "analytics",
-        icon: BarChart3,
-        href: "/analytics",
-      },
+      // {
+      //   labelKey: "analytics",
+      //   icon: BarChart3,
+      //   href: "/analytics",
+      // },
     ],
   },
   {
