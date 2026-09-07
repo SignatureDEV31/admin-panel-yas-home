@@ -1,14 +1,4 @@
-export const CHART_COLORS = {
-  yashomePink: "#FF014F",
-  main: "#151533",
-  indigo: "#6366f1",
-  emerald: "#10b981",
-  violet: "#8b5cf6",
-  blue: "#3b82f6",
-  amber: "#f59e0b",
-  rose: "#f43f5e",
-  slate: "#64748b"
-};
+export { CHART_COLORS } from "../data/data";
 
 export const formatNumber = (num: number): string => {
   return new Intl.NumberFormat("en-US").format(num);

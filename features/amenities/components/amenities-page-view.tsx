@@ -86,6 +86,7 @@ export function AmenitiesPageView() {
         setSortBy={setSortBy}
         categories={categories}
         resultsCount={filteredAndSortedData.length}
+        onResetFilters={clearFilters}
       />
 
       {/* Table List Section */}

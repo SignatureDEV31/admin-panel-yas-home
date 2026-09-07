@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ExportFormat } from "@/services/types/admin.types";
+import { projectStatusOptions, projectPublishOptions } from "../data/data";
 
 interface ProjectsToolbarProps {
   searchQuery: string;
@@ -83,10 +84,11 @@ export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
             >
-              <option value="all">All Development Statuses</option>
-              <option value="ANNOUNCEMENT">Announcement</option>
-              <option value="UNDER_CONSTRUCTION">Under Construction</option>
-              <option value="FINISHED">Finished</option>
+              {projectStatusOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -98,9 +100,11 @@ export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
                 onChange={(e) => setSelectedPublish(e.target.value)}
                 className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
               >
-                <option value="all">All Moderation</option>
-                <option value="published">Published Online</option>
-                <option value="unpublished">Unpublished / Draft</option>
+                {projectPublishOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           )}

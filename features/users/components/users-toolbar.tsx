@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-import { Search, Filter, RotateCcw, Download, CheckCircle, ShieldCheck } from "lucide-react";
-import { Input } from "@/components/ui/input/input";
+import { Search, Filter, RotateCcw, Download, CheckCircle, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ExportFormat } from "@/services/types/admin.types";
+import {
+  userRoleOptions,
+  userCertifyOptions,
+  userVerifiedOptions,
+} from "../data/data";
 
 interface UsersToolbarProps {
   searchQuery: string;
@@ -48,16 +51,27 @@ export function UsersToolbar({
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between bg-card p-4 rounded-xl border border-border/80 shadow-xs">
       <div className="flex flex-1 flex-wrap items-center gap-3">
-        {/* Search Bar */}
+        {/* Search Box */}
         <div className="relative min-w-[240px] flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-muted-foreground/60" />
+          </span>
+          <input
             type="text"
-            placeholder="Search by name, email, phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-background h-10 text-sm"
+            placeholder="Search by name, email, phone..."
+            className="pl-9 pr-8 h-10 w-full rounded-lg border border-input bg-background text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-muted-foreground/60 hover:text-foreground cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Role Filter Dropdown */}
@@ -70,11 +84,11 @@ export function UsersToolbar({
             onChange={(e) => setSelectedRole(e.target.value)}
             className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
           >
-            <option value="all">All Roles</option>
-            <option value="regular">Regular User</option>
-            <option value="agence">Agency (Agence)</option>
-            <option value="promoter">Promoter / Developer</option>
-            <option value="admin">Administrator</option>
+            {userRoleOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -86,9 +100,11 @@ export function UsersToolbar({
               onChange={(e) => setSelectedCertify(e.target.value)}
               className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
             >
-              <option value="all">All Profiles</option>
-              <option value="certified">Certified Only</option>
-              <option value="uncertified">Uncertified Only</option>
+              {userCertifyOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         )}
@@ -101,9 +117,11 @@ export function UsersToolbar({
               onChange={(e) => setSelectedVerified(e.target.value)}
               className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
             >
-              <option value="all">All Verification</option>
-              <option value="verified">Verified Emails</option>
-              <option value="unverified">Unverified Emails</option>
+              {userVerifiedOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         )}

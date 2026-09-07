@@ -1,11 +1,8 @@
 "use client";
 
-import React from "react";
 import {
   MoreVertical,
   Edit2,
-  UserX,
-  UserCheck,
   Trash2,
   CheckCircle2,
   XCircle,
@@ -13,23 +10,26 @@ import {
   Mail,
   Phone,
   BadgeCheck,
-  ShieldAlert,
-  ShieldCheck,
-  Shield,
 } from "lucide-react";
 import { User } from "../types/user";
+import { UsersBulkActions } from "./users-bulk-actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import { AdminBulkActionType } from "@/services/types/admin.types";
 
 interface UsersTableProps {
@@ -105,113 +105,21 @@ export function UsersTable({
     <div className="space-y-3">
       {/* Floating / Sticky Bulk Action Bar */}
       {selectedIds.length > 0 && onBulkAction && (
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <ShieldCheck className="h-4 w-4" />
-            <span>{selectedIds.length} users selected</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Bulk Certify */}
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isBulkActing}
-              onClick={() => onBulkAction(AdminBulkActionType.CERTIFY)}
-              className="h-8 text-xs font-semibold cursor-pointer border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"
-            >
-              <BadgeCheck className="h-3.5 w-3.5 mr-1" />
-              Certify
-            </Button>
-
-            {/* Bulk Uncertify */}
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isBulkActing}
-              onClick={() => onBulkAction(AdminBulkActionType.UNCERTIFY)}
-              className="h-8 text-xs font-semibold cursor-pointer border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
-            >
-              <ShieldAlert className="h-3.5 w-3.5 mr-1" />
-              Revoke Certification
-            </Button>
-
-            {/* Bulk Verify Email */}
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isBulkActing}
-              onClick={() => onBulkAction(AdminBulkActionType.VERIFY_EMAIL)}
-              className="h-8 text-xs font-semibold cursor-pointer border-blue-500/30 text-blue-600 hover:bg-blue-500/10"
-            >
-              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-              Verify Email
-            </Button>
-
-            {/* Bulk Role Change Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={isBulkActing}
-                  className="h-8 text-xs font-semibold cursor-pointer"
-                >
-                  <Shield className="h-3.5 w-3.5 mr-1" />
-                  Change Role
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem
-                  onClick={() => onBulkAction(AdminBulkActionType.CHANGE_ROLE, "regular")}
-                  className="text-xs cursor-pointer"
-                >
-                  Set as Regular
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onBulkAction(AdminBulkActionType.CHANGE_ROLE, "promoter")}
-                  className="text-xs cursor-pointer"
-                >
-                  Set as Promoter
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onBulkAction(AdminBulkActionType.CHANGE_ROLE, "agence")}
-                  className="text-xs cursor-pointer"
-                >
-                  Set as Agency
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onBulkAction(AdminBulkActionType.CHANGE_ROLE, "admin")}
-                  className="text-xs cursor-pointer text-destructive"
-                >
-                  Set as Admin
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Bulk Delete */}
-            <Button
-              size="sm"
-              variant="destructive"
-              disabled={isBulkActing}
-              onClick={() => onBulkAction(AdminBulkActionType.DELETE)}
-              className="h-8 text-xs font-semibold cursor-pointer"
-            >
-              <Trash2 className="h-3.5 w-3.5 mr-1" />
-              Delete Selected
-            </Button>
-          </div>
-        </div>
+        <UsersBulkActions
+          selectedCount={selectedIds.length}
+          onBulkAction={onBulkAction}
+          isBulkActing={isBulkActing}
+        />
       )}
 
       {/* Main Table */}
-      <div className="overflow-x-auto rounded-xl border border-border/80 bg-card shadow-xs">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-muted/50 text-muted-foreground border-b border-border/80 text-xs font-semibold uppercase tracking-wider">
-            <tr>
+      <div className="bg-card border border-border/80 rounded-xl overflow-hidden shadow-xs">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50 text-muted-foreground border-b border-border/80 text-xs font-semibold uppercase tracking-wider select-none">
               {/* Checkbox All */}
               {onSelectAll && (
-                <th scope="col" className="py-3.5 pl-4 pr-1 w-10">
+                <TableHead className="py-3.5 pl-4 pr-1 w-10">
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -221,58 +129,61 @@ export function UsersTable({
                     onChange={(e) => onSelectAll(e.target.checked)}
                     className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
                   />
-                </th>
+                </TableHead>
               )}
 
-              <th scope="col" className="py-3.5 px-4">
+              <TableHead className="py-3.5 px-4 font-semibold">
                 <button
+                  type="button"
                   onClick={() => onSort("fullName")}
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
                 >
                   User Profile
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
-              </th>
-              <th scope="col" className="py-3.5 px-4">
+              </TableHead>
+              <TableHead className="py-3.5 px-4 font-semibold">
                 Contact Details
-              </th>
-              <th scope="col" className="py-3.5 px-4">
+              </TableHead>
+              <TableHead className="py-3.5 px-4 font-semibold">
                 <button
+                  type="button"
                   onClick={() => onSort("role")}
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
                 >
                   Role
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
-              </th>
-              <th scope="col" className="py-3.5 px-4">
+              </TableHead>
+              <TableHead className="py-3.5 px-4 font-semibold">
                 Certification
-              </th>
-              <th scope="col" className="py-3.5 px-4">
+              </TableHead>
+              <TableHead className="py-3.5 px-4 font-semibold">
                 Verified
-              </th>
-              <th scope="col" className="py-3.5 px-4">
+              </TableHead>
+              <TableHead className="py-3.5 px-4 font-semibold">
                 <button
+                  type="button"
                   onClick={() => onSort("createdAt")}
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
                 >
                   Joined Date
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
-              </th>
-              <th scope="col" className="py-3.5 px-4 text-right">
+              </TableHead>
+              <TableHead className="py-3.5 px-4 text-right font-semibold">
                 Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60 font-medium">
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border/60 font-medium">
             {users.map((user) => {
               const userId = user.id || user._id || "";
               const isSelected = selectedIds.includes(userId);
               const isCertified = !!user.profile?.certify;
 
               return (
-                <tr
+                <TableRow
                   key={userId}
                   className={`hover:bg-muted/30 transition-colors ${
                     isSelected ? "bg-primary/5 dark:bg-primary/10" : ""
@@ -280,18 +191,18 @@ export function UsersTable({
                 >
                   {/* Row Checkbox */}
                   {onSelectUser && (
-                    <td className="py-4 pl-4 pr-1">
+                    <TableCell className="py-4 pl-4 pr-1 align-middle">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={(e) => onSelectUser(userId, e.target.checked)}
                         className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
                       />
-                    </td>
+                    </TableCell>
                   )}
 
                   {/* User Profile Info */}
-                  <td className="py-4 px-4 whitespace-nowrap">
+                  <TableCell className="py-4 px-4 whitespace-nowrap align-middle">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center border border-primary/20 shrink-0">
                         {getInitials(user.fullName || user.profile?.raison_social || "")}
@@ -315,10 +226,10 @@ export function UsersTable({
                         </span>
                       </div>
                     </div>
-                  </td>
+                  </TableCell>
 
                   {/* Contact Details */}
-                  <td className="py-4 px-4 whitespace-nowrap">
+                  <TableCell className="py-4 px-4 whitespace-nowrap align-middle">
                     <div className="flex flex-col gap-1 text-xs">
                       <div className="flex items-center gap-1.5 text-foreground">
                         <Mail className="h-3.5 w-3.5 text-muted-foreground" />
@@ -331,10 +242,10 @@ export function UsersTable({
                         </div>
                       )}
                     </div>
-                  </td>
+                  </TableCell>
 
                   {/* Role */}
-                  <td className="py-4 px-4 whitespace-nowrap">
+                  <TableCell className="py-4 px-4 whitespace-nowrap align-middle">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border ${getRoleBadgeStyle(
                         user.role
@@ -342,12 +253,13 @@ export function UsersTable({
                     >
                       {user.role}
                     </span>
-                  </td>
+                  </TableCell>
 
                   {/* Certification Badge / Quick Action */}
-                  <td className="py-4 px-4 whitespace-nowrap">
+                  <TableCell className="py-4 px-4 whitespace-nowrap align-middle">
                     {onToggleCertification ? (
                       <button
+                        type="button"
                         onClick={() => onToggleCertification(user)}
                         title={isCertified ? "Click to revoke certification" : "Click to certify"}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer border ${
@@ -364,10 +276,10 @@ export function UsersTable({
                         {isCertified ? "Certified" : "Standard"}
                       </Badge>
                     )}
-                  </td>
+                  </TableCell>
 
                   {/* Verified */}
-                  <td className="py-4 px-4 whitespace-nowrap">
+                  <TableCell className="py-4 px-4 whitespace-nowrap align-middle">
                     {user.emailVerified ? (
                       <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                         <CheckCircle2 className="h-4 w-4" />
@@ -379,15 +291,15 @@ export function UsersTable({
                         Unverified
                       </span>
                     )}
-                  </td>
+                  </TableCell>
 
                   {/* Joined Date */}
-                  <td className="py-4 px-4 whitespace-nowrap text-xs text-muted-foreground">
+                  <TableCell className="py-4 px-4 whitespace-nowrap text-xs text-muted-foreground align-middle">
                     {formatDate(user.createdAt)}
-                  </td>
+                  </TableCell>
 
                   {/* Actions Dropdown */}
-                  <td className="py-4 px-4 whitespace-nowrap text-right">
+                  <TableCell className="py-4 px-4 whitespace-nowrap text-right align-middle">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -428,12 +340,12 @@ export function UsersTable({
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

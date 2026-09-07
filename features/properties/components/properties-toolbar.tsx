@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ExportFormat } from "@/services/types/admin.types";
+import { propertyTypeOptions, propertyAvailabilityOptions } from "../data/data";
 
 interface PropertiesToolbarProps {
   searchQuery: string;
@@ -95,9 +96,11 @@ export const PropertiesToolbar: React.FC<PropertiesToolbarProps> = ({
               onChange={(e) => setSelectedType(e.target.value)}
               className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
             >
-              <option value="all">All Deals (Sale & Rent)</option>
-              <option value="VENTE">For Sale (Vente)</option>
-              <option value="LOCATION">For Rent (Location)</option>
+              {propertyTypeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -109,9 +112,11 @@ export const PropertiesToolbar: React.FC<PropertiesToolbarProps> = ({
                 onChange={(e) => setSelectedAvailability(e.target.value)}
                 className="h-10 px-3 rounded-lg border border-input bg-background text-sm font-medium text-foreground shadow-xs focus:outline-hidden focus:ring-2 focus:ring-primary cursor-pointer"
               >
-                <option value="all">All Availability</option>
-                <option value="available">Available Only</option>
-                <option value="unavailable">Unavailable / Occupied</option>
+                {propertyAvailabilityOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           )}

@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
-import { Users, UserCheck, ShieldCheck, BadgeCheck } from "lucide-react";
+import React, { useMemo } from "react";
+import { ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { getUserStatItems } from "@/features/users/data/data";
 
-interface UsersStatsProps {
+export interface UsersStatsProps {
   stats: {
     total: number;
     activeCount: number;
@@ -17,73 +18,40 @@ interface UsersStatsProps {
 }
 
 export function UsersStats({ stats }: UsersStatsProps) {
+  const statItems = useMemo(() => getUserStatItems(stats), [stats]);
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Total Users */}
-      <Card className="border-border/60 bg-card shadow-xs transition-all hover:border-border">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Total Users
-            </span>
-            <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Users className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {stats.total}
-            </span>
-            <p className="text-xs text-muted-foreground mt-1">
-              Registered platform user accounts
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Active Accounts */}
-      <Card className="border-border/60 bg-card shadow-xs transition-all hover:border-border">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Active Users
-            </span>
-            <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <UserCheck className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {stats.activeCount}
-            </span>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
-              Enabled & active accounts
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Certified Accounts */}
-      <Card className="border-border/60 bg-card shadow-xs transition-all hover:border-border">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Certified Profiles
-            </span>
-            <div className="h-9 w-9 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
-              <BadgeCheck className="h-5 w-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {stats.certifiedCount || 0}
-            </span>
-            <p className="text-xs text-violet-600 dark:text-violet-400 mt-1 font-medium">
-              Verified promoters & agencies
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {statItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Card
+            key={item.title}
+            className="border-border/60 bg-card shadow-xs transition-all hover:border-border"
+          >
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {item.title}
+                </span>
+                <div
+                  className={`h-9 w-9 rounded-lg flex items-center justify-center ${item.iconBg}`}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <span className="text-2xl font-bold tracking-tight text-foreground">
+                  {item.value}
+                </span>
+                <p className={`text-xs mt-1 ${item.descriptionClass}`}>
+                  {item.description}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {/* Roles Breakdown */}
       <Card className="border-border/60 bg-card shadow-xs transition-all hover:border-border">
