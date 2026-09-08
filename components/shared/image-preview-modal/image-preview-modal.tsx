@@ -10,7 +10,10 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  Download,
+  Loader2,
 } from "lucide-react";
+import { downloadImage } from "./utils/image-preview-modal.utils";
 
 export interface PreviewImageItem {
   id: string;
@@ -28,6 +31,7 @@ export interface ImagePreviewModalProps {
   onRotate?: (imageId: string, angle: number) => void;
   onSetMain?: (imageId: string) => void;
   onDelete?: (imageId: string) => void;
+  onDownload?: (image: PreviewImageItem) => void;
 }
 
 export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
@@ -39,10 +43,31 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
   onRotate,
   onSetMain,
   onDelete,
+  onDownload,
 }) => {
   const [rotations, setRotations] = useState<Record<string, number>>({});
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const currentPhoto = images[currentIndex];
+
+  const handleDownloadCurrent = async () => {
+    if (!currentPhoto?.url) return;
+    if (onDownload) {
+      onDownload(currentPhoto);
+      return;
+    }
+
+    try {
+      setIsDownloading(true);
+      await downloadImage({
+        url: currentPhoto.url,
+        title: currentPhoto.title,
+        fallbackId: currentPhoto.id || currentIndex + 1,
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleRotateCurrent = (deltaAngle = 90) => {
     if (!currentPhoto) return;
@@ -67,6 +92,8 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
         onClose();
       } else if (e.key.toLowerCase() === "r") {
         handleRotateCurrent(90);
+      } else if (e.key.toLowerCase() === "d") {
+        handleDownloadCurrent();
       }
     };
 
@@ -117,6 +144,21 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             title="Rotate Clockwise (90°)"
           >
             <RotateCw className="h-5 w-5" />
+          </button>
+
+          {/* Download Photo */}
+          <button
+            type="button"
+            onClick={handleDownloadCurrent}
+            disabled={isDownloading}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer disabled:opacity-50"
+            title="Download Photo (D)"
+          >
+            {isDownloading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-white" />
+            ) : (
+              <Download className="h-5 w-5" />
+            )}
           </button>
 
           {/* Set as Main Photo */}
@@ -201,11 +243,10 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
               key={photo.id || idx}
               type="button"
               onClick={() => onIndexChange(idx)}
-              className={`relative h-14 w-14 rounded-md overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                idx === currentIndex
+              className={`relative h-14 w-14 rounded-md overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${idx === currentIndex
                   ? "border-yashomePink scale-105 shadow-md"
                   : "border-transparent opacity-50 hover:opacity-100"
-              }`}
+                }`}
             >
               <img
                 src={photo.url}
