@@ -41,7 +41,72 @@ You are an expert Next.js developer. Please follow this exact folder structure a
 7. Internationalization (`messages/`):
    - Store translation key-value JSONs in `messages/` organized by locale (`en.json`, `ar.json`, `fr.json`).
 
-Reuse existing components if reusable
+### 14. REUSABILITY IS MANDATORY
+
+Before creating any component:
+- Search the existing project.
+- Find equivalent components.
+- Determine whether an existing component can be reused.
+- Determine whether an existing component can be extended.
+- Only create a new component if necessary.
+
+Never create duplicate components such as:
+- `MyButton.tsx`
+- `CustomButton.tsx`
+- `NewButton.tsx`
+- `PropertyButton.tsx`
+
+when an existing `Button` can be reused.
+
+Prefer:
+```tsx
+<Button variant="secondary" />
+```
+over creating:
+```tsx
+<SecondaryButton />
+```
+when the existing API can support the behavior.
+
+### 15. NO DUPLICATED UI
+
+Do not reproduce the same meaningful UI in multiple places.
+
+Bad:
+```tsx
+<div className="rounded-lg border p-4">
+  ...
+</div>
+```
+repeated across several files.
+
+If the UI represents a reusable concept, extract it.
+
+Example:
+```tsx
+<PropertyCard property={property} />
+```
+instead of reproducing the card markup everywhere.
+
+### 16. NO DUPLICATED BUSINESS LOGIC
+
+Do not duplicate:
+- formatting logic
+- filtering logic
+- transformation logic
+- validation logic
+- API logic
+- state logic
+- permission logic
+- search logic
+
+If logic belongs to one feature:
+- `src/features/[feature]/utils/`
+- `src/features/[feature]/hooks/`
+
+If logic is genuinely generic:
+- `src/lib/`
+- `src/hooks/`
 
 Please strictly follow this directory organization when creating or modifying any file.
 
