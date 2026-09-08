@@ -61,7 +61,7 @@ export const ProjectsToolbar: React.FC<ProjectsToolbarProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search project title, city, wilaya..."
+              placeholder="Search by ID (#12), project title, city..."
               className="pl-9 pr-8 h-10 w-full rounded-lg border border-input bg-background text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
             {searchQuery && (

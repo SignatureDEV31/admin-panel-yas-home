@@ -58,6 +58,7 @@ export interface Project {
 export interface ProjectQueryParams {
   page?: number;
   limit?: number;
+  id?: number | string;
   search?: string;
   status?: string;
   isPublished?: boolean;
@@ -106,6 +107,7 @@ export async function getProjects(
       params: {
         page,
         limit,
+        id: params?.id,
         search: params?.search || undefined,
         status: params?.status && params.status !== "all" ? params.status : undefined,
         isPublished: params?.isPublished,

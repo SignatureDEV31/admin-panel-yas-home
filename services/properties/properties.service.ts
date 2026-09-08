@@ -71,6 +71,7 @@ export interface Property {
 export interface PropertyQueryParams {
   page?: number;
   limit?: number;
+  id?: number | string;
   search?: string;
   propertyType?: string;
   pricingType?: string;
@@ -122,6 +123,7 @@ export async function getProperties(
       params: {
         page,
         limit,
+        id: params?.id,
         search: params?.search || undefined,
         propertyType:
           params?.propertyType && params.propertyType !== "all"

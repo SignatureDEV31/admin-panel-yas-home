@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   Search,
@@ -32,14 +31,28 @@ export function GlobalSearch() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setQuery("");
+    setResults({ users: [], projects: [], properties: [] });
+    setLoading(false);
+  };
+
   // Keyboard shortcut Ctrl+K or Cmd+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        setIsOpen((prev) => {
+          if (prev) {
+            setQuery("");
+            setResults({ users: [], projects: [], properties: [] });
+            setLoading(false);
+          }
+          return !prev;
+        });
       } else if (e.key === "Escape") {
-        setIsOpen(false);
+        handleClose();
       }
     };
 
@@ -51,21 +64,25 @@ export function GlobalSearch() {
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      setQuery("");
-      setResults({ users: [], projects: [], properties: [] });
     }
   }, [isOpen]);
 
-  // Debounced search
-  useEffect(() => {
-    if (!query || query.trim().length < 2) {
+  const handleQueryChange = (val: string) => {
+    setQuery(val);
+    if (!val.trim()) {
       setResults({ users: [], projects: [], properties: [] });
       setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    if (!query.trim()) {
       return;
     }
 
-    setLoading(true);
     const timer = setTimeout(async () => {
       try {
         const res = await globalSearch(query);
@@ -86,7 +103,7 @@ export function GlobalSearch() {
     results.properties.length > 0;
 
   const handleSelectResult = (url: string) => {
-    setIsOpen(false);
+    handleClose();
     router.push(url);
   };
 
@@ -111,7 +128,7 @@ export function GlobalSearch() {
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div
             className="fixed inset-0"
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
           />
 
           <div className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200">
@@ -122,14 +139,14 @@ export function GlobalSearch() {
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type to search users, real estate projects, properties..."
+                onChange={(e) => handleQueryChange(e.target.value)}
+                placeholder="Search by ID (#12), title, user, city..."
                 className="w-full h-12 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden"
               />
               {loading && <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0 ml-2" />}
               {query && !loading && (
                 <button
-                  onClick={() => setQuery("")}
+                  onClick={() => handleQueryChange("")}
                   className="p-1 rounded-md text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   <X className="h-4 w-4" />
@@ -151,7 +168,7 @@ export function GlobalSearch() {
                 <div className="py-8 text-center text-muted-foreground">
                   <p className="font-semibold text-sm">No matches found</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    No users, projects, or properties matched "{query}".
+                    No users, projects, or properties matched &quot;{query}&quot;.
                   </p>
                 </div>
               ) : (

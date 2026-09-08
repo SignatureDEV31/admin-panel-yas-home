@@ -73,7 +73,7 @@ export const PropertiesToolbar: React.FC<PropertiesToolbarProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search property name, city, wilaya..."
+              placeholder="Search by ID (#12), name, city, wilaya..."
               className="pl-9 pr-8 h-10 w-full rounded-lg border border-input bg-background text-sm text-foreground shadow-xs transition-colors placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
             {searchQuery && (
