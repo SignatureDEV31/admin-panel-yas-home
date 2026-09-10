@@ -16,7 +16,6 @@ export default function SignupPage() {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -30,12 +29,10 @@ export default function SignupPage() {
     },
   });
 
-  const rememberMe = watch("rememberMe");
-
   const onSubmit = async (data: SignUpFormData) => {
-    // Remove confirmPassword before sending to API if needed
-    const { confirmPassword, ...signUpData } = data;
-    await handleSignUp(signUpData as SignUpFormData, setLoading, refreshUser);
+    // Remove confirmPassword and rememberMe before sending to API
+    const { confirmPassword, rememberMe, ...signUpData } = data;
+    await handleSignUp(signUpData, setLoading, refreshUser);
   };
 
   const handleGoogleSignup = () => {
